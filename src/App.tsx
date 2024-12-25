@@ -1,6 +1,9 @@
 import { useState } from "react";
 import reactLogo from "./assets/react.svg";
+import { Button } from "@/components/ui/button";
 import { invoke } from "@tauri-apps/api/core";
+import Sidepanel from "./components/custom/sidepanel/sidepanel";
+import MainPanel from "./components/custom/main_panel/main_panel";
 
 function App() {
     const [greetMsg, setGreetMsg] = useState("");
@@ -11,7 +14,12 @@ function App() {
         setGreetMsg(await invoke("greet", { name }));
     }
 
-    return <div className="h-[100vh] w-[100vw] bg-neutral-800"></div>;
+    return (
+        <div className="flex flex-row h-[100vh] w-[100vw] bg-stone-800 align">
+            <Sidepanel />
+            <MainPanel />
+        </div>
+    );
 }
 
 export default App;
