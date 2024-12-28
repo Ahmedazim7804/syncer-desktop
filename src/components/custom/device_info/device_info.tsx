@@ -13,7 +13,7 @@ import useImage from "use-image";
 
 export default function DeviceInfo() {
     return (
-        <div className="flex flex-col justify-center text-stone-200 self-center py-4 px-4 gap-4">
+        <div className="flex flex-col justify-center max-w-full self-center py-4 px-4 gap-4">
             <div className="flex flex-row justify-start gap-6">
                 <img src="./src/assets/group2.svg" alt="wallpaper"></img>
                 <div className="flex flex-col justify-start align-top pt-4 gap-2">

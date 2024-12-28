@@ -10,8 +10,13 @@
     "tauri": "tauri"
   },
   "dependencies": {
+    "@radix-ui/react-dropdown-menu": "^2.1.4",
     "@radix-ui/react-separator": "^1.1.1",
     "@radix-ui/react-slot": "^1.1.1",
+    "@radix-ui/react-tabs": "^1.1.2",
+    "@tanstack/react-router": "^1.92.6",
+    "@tanstack/router-devtools": "^1.92.6",
+    "@tanstack/router-plugin": "^1.91.1",
     "@tauri-apps/api": "^2",
     "@tauri-apps/plugin-opener": "^2",
     "autoprefixer": "^10.4.20",

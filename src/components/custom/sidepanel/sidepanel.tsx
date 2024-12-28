@@ -5,7 +5,7 @@ import { Separator } from "@/components/ui/separator";
 
 export default function Sidepanel() {
     return (
-        <div className="h-full md:w-[40%] lg:w-[20%] justify-start items-center flex flex-col gap-2 bg-stone-900 py-8">
+        <div className="h-full md:max-w-[40%] lg:max-w-[20%] justify-start bg-background-secondary items-center flex flex-col gap-2 py-8 border-foreground/50 border-r-2">
             <DeviceInfo />
             <Separator className="bg-stone-700 w-3/4 h-0.5 rounded-full" />
             <NotificationsWidget />
