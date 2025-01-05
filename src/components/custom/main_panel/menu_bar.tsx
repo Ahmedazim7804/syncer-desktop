@@ -10,7 +10,7 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 
 export default function MenuBar() {
     return (
-        <div className="flex flex-row gap-8 w-full pt-8 px-4 pb-4 bg-background-secondary">
+        <div className="flex flex-row gap-8 pt-8 px-4 pb-4 bg-background-secondary">
             <MenuBarTab icon={FaClipboard} label={"Clipboard"} />
             <MenuBarTab icon={BiSolidMessageAltDetail} label={"Messages"} />
             <MenuBarTab icon={IoCallSharp} label={"Calls"} />

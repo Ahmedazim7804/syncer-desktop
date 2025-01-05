@@ -8,11 +8,11 @@ export const Route = createFileRoute("/_homescreen")({
 
 function RouteComponent() {
     return (
-        <div className="flex flex-row h-[100vh] w-[100vw] align">
+        <div className="flex flex-row h-full w-full">
             <Sidepanel />
             <div className="flex flex-col h-full w-full">
                 <MenuBar />
-                <div className="m-4 flex">
+                <div className="m-8 flex flex-1">
                     <Outlet />
                 </div>
             </div>

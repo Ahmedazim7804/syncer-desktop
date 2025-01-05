@@ -5,12 +5,12 @@ import { TanStackRouterDevtools } from "@tanstack/router-devtools";
 
 export const Route = createRootRoute({
     component: () => (
-        <>
+        <div className="w-[100vw] h-[100vh] flex flex-1 flex-col">
             <ThemeProvider defaultTheme="light" storageKey="vite-ui-theme">
                 <div className="p-2 flex gap-2">
                     <Link to="/clipboard" className="[&.active]:font-bold">
                         Home
-                    </Link>{" "}
+                    </Link>
                     <Link to="/clipboard" className="[&.active]:font-bold">
                         About
                     </Link>
@@ -20,6 +20,6 @@ export const Route = createRootRoute({
                 <Outlet />
             </ThemeProvider>
             <TanStackRouterDevtools />
-        </>
+        </div>
     ),
 });

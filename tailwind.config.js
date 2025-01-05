@@ -5,7 +5,7 @@ export default {
     theme: {
         extend: {
             fontFamily: {
-                lexend: ["Lexend", "sans-serif"],
+                quicksand: ["Quicksand", "sans-serif"],
             },
             borderRadius: {
                 lg: "var(--radius)",
