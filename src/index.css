@@ -70,3 +70,19 @@
         @apply absolute content-[''] w-10/12 h-0.5 self-center bg-primary bottom-[-8px] rounded-full scale-x-0 hover:scale-x-100 transition-transform duration-300;
     }
 }
+
+@layer components {
+    .spinner {
+        border-radius: 50%;
+        background: conic-gradient(#0000 10%, hsl(var(--foreground)));
+        mask: radial-gradient(farthest-side, #0000 calc(100% - 4px), #000 0);
+        -webkit-mask: radial-gradient(farthest-side, #0000 6px, #000 0);
+        animation: spinner-animation 1s infinite linear;
+    }
+
+    @keyframes spinner-animation {
+        to {
+            transform: rotate(1turn);
+        }
+    }
+}

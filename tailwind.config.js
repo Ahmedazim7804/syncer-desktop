@@ -12,6 +12,15 @@ export default {
                 md: "calc(var(--radius) - 2px)",
                 sm: "calc(var(--radius) - 4px)",
             },
+            backgroundImage: {
+                pattern: `radial-gradient(circle at 99% 33%, hsla(235,0%,48%,0.03) 0%, hsla(235,0%,48%,0.03) 37%, transparent 37%, transparent 100%),
+                           radial-gradient(circle at 46% 16%, hsla(235,0%,48%,0.03) 0%, hsla(235,0%,48%,0.03) 43%, transparent 43%, transparent 100%),
+                           radial-gradient(circle at 99% 25%, hsla(235,0%,48%,0.03) 0%, hsla(235,0%,48%,0.03) 22%, transparent 22%, transparent 100%),
+                           radial-gradient(circle at 57% 88%, hsla(235,0%,48%,0.03) 0%, hsla(235,0%,48%,0.03) 86%, transparent 86%, transparent 100%),
+                           radial-gradient(circle at 82% 78%, hsla(235,0%,48%,0.03) 0%, hsla(235,0%,48%,0.03) 22%, transparent 22%, transparent 100%),
+                           linear-gradient(90deg, rgb(0,0,0), rgb(0,0,0))`,
+                pattern2: `radial-gradient(circle at center center, #0c0a09, #e5e5f7), repeating-radial-gradient(circle at center center, #0c0a09, #0c0a09, 40px, transparent 80px, transparent 40px);`,
+            },
             colors: {
                 background: {
                     DEFAULT: "hsl(var(--background))",
