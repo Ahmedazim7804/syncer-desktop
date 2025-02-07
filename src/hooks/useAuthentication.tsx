@@ -9,7 +9,7 @@ import { z } from "zod";
 function login(values: z.infer<typeof loginSchema>): Promise<AxiosResponse> {
     console.log(values.username);
 
-    const loginUrl = new URL("/login", values.serverUrl).href;
+    const loginUrl = new URL("/api/v1/auth/login", values.serverUrl).href;
     const formData = new FormData();
 
     formData.append("username", values.username);

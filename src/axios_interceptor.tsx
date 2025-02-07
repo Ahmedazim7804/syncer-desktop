@@ -3,7 +3,7 @@ import axios from "axios";
 import { useNavigate } from "@tanstack/react-router";
 import { useAccessToken } from "./hooks/useAuthentication";
 import { getLastUrlSegment, publicRoutes } from "./utils";
-import { useAppData, useAppDataValue } from "./context/app_data_context";
+import { useAppData } from "./context/app_data_context";
 
 const instance = axios.create();
 
