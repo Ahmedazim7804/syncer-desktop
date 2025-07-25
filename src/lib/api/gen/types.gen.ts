@@ -113,5 +113,5 @@ export type GetMeApiV1MeGetResponse =
   GetMeApiV1MeGetResponses[keyof GetMeApiV1MeGetResponses];
 
 export type ClientOptions = {
-  baseURL: "http://localhost:8000" | (string & {});
+  baseUrl: "http://localhost:8000" | (string & {});
 };

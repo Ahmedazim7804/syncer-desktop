@@ -8,7 +8,8 @@ export default defineConfig({
   },
   plugins: [
     ...defaultPlugins,
-    "@hey-api/client-axios",
+    "@hey-api/client-fetch",
+    // "@hey-api/client-axios",
     "@tanstack/react-query",
   ],
 });

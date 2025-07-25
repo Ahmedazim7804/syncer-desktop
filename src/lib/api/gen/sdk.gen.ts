@@ -45,7 +45,6 @@ export const getAccessTokenWithPasswordApiV1AuthLoginPost = <
     GetAccessTokenWithPasswordApiV1AuthLoginPostErrors,
     ThrowOnError
   >({
-    responseType: "json",
     url: "/api/v1/auth/login",
     ...options,
     headers: {
@@ -71,7 +70,6 @@ export const getAccessTokenWithRefreshTokenApiV1AuthRefreshPost = <
     unknown,
     ThrowOnError
   >({
-    responseType: "json",
     url: "/api/v1/auth/refresh",
     ...options,
   });
@@ -88,7 +86,6 @@ export const getMeApiV1MeGet = <ThrowOnError extends boolean = false>(
     unknown,
     ThrowOnError
   >({
-    responseType: "json",
     url: "/api/v1/me/",
     ...options,
   });

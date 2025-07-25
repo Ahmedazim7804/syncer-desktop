@@ -19,11 +19,10 @@ import type {
   GetAccessTokenWithRefreshTokenApiV1AuthRefreshPostResponse,
   GetMeApiV1MeGetData,
 } from "../types.gen";
-import type { AxiosError } from "axios";
 import { client as _heyApiClient } from "../client.gen";
 
 export type QueryKey<TOptions extends Options> = [
-  Pick<TOptions, "baseURL" | "body" | "headers" | "path" | "query"> & {
+  Pick<TOptions, "baseUrl" | "body" | "headers" | "path" | "query"> & {
     _id: string;
     _infinite?: boolean;
   },
@@ -36,7 +35,7 @@ const createQueryKey = <TOptions extends Options>(
 ): [QueryKey<TOptions>[0]] => {
   const params: QueryKey<TOptions>[0] = {
     _id: id,
-    baseURL: (options?.client ?? _heyApiClient).getConfig().baseURL,
+    baseUrl: (options?.client ?? _heyApiClient).getConfig().baseUrl,
   } as QueryKey<TOptions>[0];
   if (infinite) {
     params._infinite = infinite;
@@ -87,12 +86,12 @@ export const getAccessTokenWithPasswordApiV1AuthLoginPostMutation = (
   options?: Partial<Options<GetAccessTokenWithPasswordApiV1AuthLoginPostData>>,
 ): UseMutationOptions<
   GetAccessTokenWithPasswordApiV1AuthLoginPostResponse,
-  AxiosError<GetAccessTokenWithPasswordApiV1AuthLoginPostError>,
+  GetAccessTokenWithPasswordApiV1AuthLoginPostError,
   Options<GetAccessTokenWithPasswordApiV1AuthLoginPostData>
 > => {
   const mutationOptions: UseMutationOptions<
     GetAccessTokenWithPasswordApiV1AuthLoginPostResponse,
-    AxiosError<GetAccessTokenWithPasswordApiV1AuthLoginPostError>,
+    GetAccessTokenWithPasswordApiV1AuthLoginPostError,
     Options<GetAccessTokenWithPasswordApiV1AuthLoginPostData>
   > = {
     mutationFn: async (localOptions) => {
@@ -144,12 +143,12 @@ export const getAccessTokenWithRefreshTokenApiV1AuthRefreshPostMutation = (
   >,
 ): UseMutationOptions<
   GetAccessTokenWithRefreshTokenApiV1AuthRefreshPostResponse,
-  AxiosError<DefaultError>,
+  DefaultError,
   Options<GetAccessTokenWithRefreshTokenApiV1AuthRefreshPostData>
 > => {
   const mutationOptions: UseMutationOptions<
     GetAccessTokenWithRefreshTokenApiV1AuthRefreshPostResponse,
-    AxiosError<DefaultError>,
+    DefaultError,
     Options<GetAccessTokenWithRefreshTokenApiV1AuthRefreshPostData>
   > = {
     mutationFn: async (localOptions) => {

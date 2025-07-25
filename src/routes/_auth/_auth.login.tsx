@@ -31,7 +31,7 @@ export default function RouteComponent() {
   const onSubmit = async (data: LoginFormData) => {
     await login(data);
     if (isLoggedIn) {
-      router.navigate({ to: "/me" });
+      router.navigate({ to: "/dashboard" });
     }
   }
 
