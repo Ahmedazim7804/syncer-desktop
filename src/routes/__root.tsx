@@ -6,6 +6,7 @@ import { PUBLIC_ROUTES } from '@/lib/public-routes'
 import { SidebarInset, SidebarProvider, SidebarTrigger } from '@/components/ui/sidebar'
 import SidebarComponent from '@/components/custom/sidebar/sidebar'
 import Navbar from '@/components/custom/navbar'
+import { GrpcProvider } from '@/lib/context/grpc-context'
 
 export const Route = createRootRoute({
   component: RootComponent,
@@ -47,7 +48,9 @@ function ProtectedRoute({ children }: { children: React.ReactNode }) {
       <div className='flex flex-col flex-1 border-0'>
         <Navbar/>
         <div className='flex flex-col flex-1 p-4'>
-          {children}
+          <GrpcProvider> 
+            {children}
+          </GrpcProvider>
         </div>
       </div>
       </SidebarInset>
