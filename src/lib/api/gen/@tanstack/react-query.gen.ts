@@ -6,23 +6,21 @@ import {
   getAccessTokenWithRefreshTokenApiV1AuthRefreshPost,
   getMeApiV1MeGet,
 } from "../sdk.gen";
-import {
-  queryOptions,
-  type UseMutationOptions,
-  type DefaultError,
-} from "@tanstack/react-query";
+import { queryOptions, type UseMutationOptions } from "@tanstack/react-query";
 import type {
   GetAccessTokenWithPasswordApiV1AuthLoginPostData,
   GetAccessTokenWithPasswordApiV1AuthLoginPostError,
   GetAccessTokenWithPasswordApiV1AuthLoginPostResponse,
   GetAccessTokenWithRefreshTokenApiV1AuthRefreshPostData,
+  GetAccessTokenWithRefreshTokenApiV1AuthRefreshPostError,
   GetAccessTokenWithRefreshTokenApiV1AuthRefreshPostResponse,
   GetMeApiV1MeGetData,
 } from "../types.gen";
+import type { AxiosError } from "axios";
 import { client as _heyApiClient } from "../client.gen";
 
 export type QueryKey<TOptions extends Options> = [
-  Pick<TOptions, "baseUrl" | "body" | "headers" | "path" | "query"> & {
+  Pick<TOptions, "baseURL" | "body" | "headers" | "path" | "query"> & {
     _id: string;
     _infinite?: boolean;
   },
@@ -35,7 +33,7 @@ const createQueryKey = <TOptions extends Options>(
 ): [QueryKey<TOptions>[0]] => {
   const params: QueryKey<TOptions>[0] = {
     _id: id,
-    baseUrl: (options?.client ?? _heyApiClient).getConfig().baseUrl,
+    baseURL: (options?.client ?? _heyApiClient).getConfig().baseURL,
   } as QueryKey<TOptions>[0];
   if (infinite) {
     params._infinite = infinite;
@@ -86,12 +84,12 @@ export const getAccessTokenWithPasswordApiV1AuthLoginPostMutation = (
   options?: Partial<Options<GetAccessTokenWithPasswordApiV1AuthLoginPostData>>,
 ): UseMutationOptions<
   GetAccessTokenWithPasswordApiV1AuthLoginPostResponse,
-  GetAccessTokenWithPasswordApiV1AuthLoginPostError,
+  AxiosError<GetAccessTokenWithPasswordApiV1AuthLoginPostError>,
   Options<GetAccessTokenWithPasswordApiV1AuthLoginPostData>
 > => {
   const mutationOptions: UseMutationOptions<
     GetAccessTokenWithPasswordApiV1AuthLoginPostResponse,
-    GetAccessTokenWithPasswordApiV1AuthLoginPostError,
+    AxiosError<GetAccessTokenWithPasswordApiV1AuthLoginPostError>,
     Options<GetAccessTokenWithPasswordApiV1AuthLoginPostData>
   > = {
     mutationFn: async (localOptions) => {
@@ -107,7 +105,7 @@ export const getAccessTokenWithPasswordApiV1AuthLoginPostMutation = (
 };
 
 export const getAccessTokenWithRefreshTokenApiV1AuthRefreshPostQueryKey = (
-  options?: Options<GetAccessTokenWithRefreshTokenApiV1AuthRefreshPostData>,
+  options: Options<GetAccessTokenWithRefreshTokenApiV1AuthRefreshPostData>,
 ) =>
   createQueryKey("getAccessTokenWithRefreshTokenApiV1AuthRefreshPost", options);
 
@@ -115,7 +113,7 @@ export const getAccessTokenWithRefreshTokenApiV1AuthRefreshPostQueryKey = (
  * Get Access Token With Refresh Token
  */
 export const getAccessTokenWithRefreshTokenApiV1AuthRefreshPostOptions = (
-  options?: Options<GetAccessTokenWithRefreshTokenApiV1AuthRefreshPostData>,
+  options: Options<GetAccessTokenWithRefreshTokenApiV1AuthRefreshPostData>,
 ) => {
   return queryOptions({
     queryFn: async ({ queryKey, signal }) => {
@@ -143,12 +141,12 @@ export const getAccessTokenWithRefreshTokenApiV1AuthRefreshPostMutation = (
   >,
 ): UseMutationOptions<
   GetAccessTokenWithRefreshTokenApiV1AuthRefreshPostResponse,
-  DefaultError,
+  AxiosError<GetAccessTokenWithRefreshTokenApiV1AuthRefreshPostError>,
   Options<GetAccessTokenWithRefreshTokenApiV1AuthRefreshPostData>
 > => {
   const mutationOptions: UseMutationOptions<
     GetAccessTokenWithRefreshTokenApiV1AuthRefreshPostResponse,
-    DefaultError,
+    AxiosError<GetAccessTokenWithRefreshTokenApiV1AuthRefreshPostError>,
     Options<GetAccessTokenWithRefreshTokenApiV1AuthRefreshPostData>
   > = {
     mutationFn: async (localOptions) => {

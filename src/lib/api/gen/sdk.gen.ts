@@ -7,6 +7,7 @@ import type {
   GetAccessTokenWithPasswordApiV1AuthLoginPostErrors,
   GetAccessTokenWithRefreshTokenApiV1AuthRefreshPostData,
   GetAccessTokenWithRefreshTokenApiV1AuthRefreshPostResponses,
+  GetAccessTokenWithRefreshTokenApiV1AuthRefreshPostErrors,
   GetMeApiV1MeGetData,
   GetMeApiV1MeGetResponses,
 } from "./types.gen";
@@ -45,6 +46,7 @@ export const getAccessTokenWithPasswordApiV1AuthLoginPost = <
     GetAccessTokenWithPasswordApiV1AuthLoginPostErrors,
     ThrowOnError
   >({
+    responseType: "json",
     url: "/api/v1/auth/login",
     ...options,
     headers: {
@@ -60,18 +62,23 @@ export const getAccessTokenWithPasswordApiV1AuthLoginPost = <
 export const getAccessTokenWithRefreshTokenApiV1AuthRefreshPost = <
   ThrowOnError extends boolean = false,
 >(
-  options?: Options<
+  options: Options<
     GetAccessTokenWithRefreshTokenApiV1AuthRefreshPostData,
     ThrowOnError
   >,
 ) => {
-  return (options?.client ?? _heyApiClient).post<
+  return (options.client ?? _heyApiClient).post<
     GetAccessTokenWithRefreshTokenApiV1AuthRefreshPostResponses,
-    unknown,
+    GetAccessTokenWithRefreshTokenApiV1AuthRefreshPostErrors,
     ThrowOnError
   >({
+    responseType: "json",
     url: "/api/v1/auth/refresh",
     ...options,
+    headers: {
+      "Content-Type": "application/json",
+      ...options.headers,
+    },
   });
 };
 
@@ -86,6 +93,7 @@ export const getMeApiV1MeGet = <ThrowOnError extends boolean = false>(
     unknown,
     ThrowOnError
   >({
+    responseType: "json",
     url: "/api/v1/me/",
     ...options,
   });

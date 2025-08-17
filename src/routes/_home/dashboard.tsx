@@ -2,8 +2,7 @@ import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
 import { useGrpcContext } from '@/lib/context/grpc-context'
 import { createFileRoute } from '@tanstack/react-router'
-import { useEffect, useMemo, useState } from 'react'
-import { Message } from 'react-hook-form'
+import { useEffect, useState } from 'react'
 
 export const Route = createFileRoute('/_home/dashboard')({
   component: RouteComponent,

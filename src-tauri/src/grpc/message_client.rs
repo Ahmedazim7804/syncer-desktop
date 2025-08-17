@@ -1,12 +1,12 @@
+use crate::core;
 use crate::syncer::message_service_client::MessageServiceClient;
 use crate::syncer::server_message::Payload;
-use crate::syncer::{ClientMessage, GenericTextMessage, ServerMessage};
-use prost_types::Enum;
+use crate::syncer::{ClientMessage, ServerMessage};
 use serde::{Deserialize, Serialize};
-use serde_json;
 use std::time::{SystemTime, UNIX_EPOCH};
-use tonic::transport::{Channel, Endpoint, Error};
-use tonic::{client, Request, Status, Streaming};
+use tauri_plugin_http::reqwest::tls;
+use tonic::transport::{Channel, ClientTlsConfig, Endpoint};
+use tonic::{Request, Streaming};
 use uuid::Uuid;
 
 #[derive(Debug, Clone, Serialize, Deserialize)]
@@ -81,19 +81,17 @@ impl From<ServerMessage> for SerializableServerMessage {
     }
 }
 
-impl Default for GrpcMessageClient {
-    fn default() -> Self {
-        // Create a dummy client for default - this will need to be properly initialized
-        // when actually connecting to a server
+impl GrpcMessageClient {
+    pub fn new(tls_config: ClientTlsConfig) -> Self {
         Self {
-            client: MessageServiceClient::new(Endpoint::connect_lazy(&Endpoint::from_static(
-                "http://localhost:50051",
-            ))),
+            client: MessageServiceClient::new(Endpoint::connect_lazy(
+                &Endpoint::from_static("https://localhost:50051")
+                    .tls_config(tls_config)
+                    .unwrap(),
+            )),
         }
     }
-}
 
-impl GrpcMessageClient {
     pub async fn is_connected(&mut self) -> bool {
         let request = Request::new(());
         let response = self.client.is_connected(request).await;
@@ -105,8 +103,9 @@ impl GrpcMessageClient {
         }
     }
 
-    pub async fn connect(url: String) -> Result<Self, Error> {
-        let endpoint = Endpoint::from_shared(url)?;
+    pub async fn connect(url: String) -> Result<Self, Box<dyn std::error::Error>> {
+        let tls_config = core::tls::load_cert()?;
+        let endpoint = Endpoint::from_shared(url)?.tls_config(tls_config)?;
         let client = MessageServiceClient::connect(endpoint).await?;
         Ok(Self { client })
     }

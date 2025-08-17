@@ -8,7 +8,9 @@ import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle }
 import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from '@/components/ui/form'
 import { Eye, EyeOff, Loader2 } from 'lucide-react'
 import { LoginFormData, loginSchema } from '@/lib/zod/auth-schema'
-import { useAuth } from '@/lib/providers/auth-context'
+import useLogin from '@/lib/hooks/useLogin'
+import useStore from '@/lib/hooks/useStore'
+import { StoreKeys } from '@/lib/constants'
 
 export const Route = createFileRoute('/_auth/_auth/login')({
   component: RouteComponent,
@@ -17,7 +19,9 @@ export const Route = createFileRoute('/_auth/_auth/login')({
 export default function RouteComponent() {
   const [showPassword, setShowPassword] = React.useState(false)
   const router = useRouter();
-  const { login, loading: isPending, isLoggedIn } = useAuth();
+  const { loginAsync, isPending: loggingIn, error } = useLogin();
+  const { setStore } = useStore(StoreKeys.TOKEN);
+
 
   const form = useForm<LoginFormData>({
     resolver: zodResolver(loginSchema),
@@ -29,10 +33,24 @@ export default function RouteComponent() {
   })
 
   const onSubmit = async (data: LoginFormData) => {
-    await login(data);
-    if (isLoggedIn) {
-      router.navigate({ to: "/dashboard" });
+    const loginResponse = await loginAsync({
+      body: {
+        device: data.device,
+        password: data.password,
+      }
+    });
+    if (error) {
+      console.error(error);
+      return;
     }
+    console.log(loginResponse?.access_token)
+    console.log(loginResponse?.refresh_token)
+    await setStore('token', {
+      access_token: loginResponse?.access_token,
+      refresh_token: loginResponse?.refresh_token,
+    });
+
+    router.navigate({ to: "/dashboard" });
   }
 
   return (
@@ -64,7 +82,7 @@ export default function RouteComponent() {
                         onChange={field.onChange}
                         onBlur={field.onBlur}
                         placeholder="Enter your device name"
-                        disabled={isPending}
+                        disabled={loggingIn}
                       />
                     </FormControl>
                     <FormMessage />
@@ -86,7 +104,7 @@ export default function RouteComponent() {
                         onChange={field.onChange}
                         onBlur={field.onBlur}
                         placeholder="Enter your server url"
-                        disabled={isPending}
+                        disabled={loggingIn}
                       />
                     </FormControl>
                     <FormMessage />
@@ -106,7 +124,7 @@ export default function RouteComponent() {
                         <Input
                           type={showPassword ? 'text' : 'password'}
                           placeholder="Enter your password"
-                          disabled={isPending}
+                          disabled={loggingIn}
                           name={field.name}
                           value={field.value}
                           onChange={field.onChange}
@@ -118,7 +136,7 @@ export default function RouteComponent() {
                           size="icon"
                           className="absolute right-0 top-0 h-full px-3 py-2 hover:bg-transparent"
                           onClick={() => setShowPassword(!showPassword)}
-                          disabled={isPending}
+                          disabled={loggingIn}
                         >
                           {showPassword ? (
                             <EyeOff className="h-4 w-4" />
@@ -138,9 +156,9 @@ export default function RouteComponent() {
               <Button
                 type="submit"
                 className="w-full"
-                disabled={isPending || form.formState.isSubmitting}
+                disabled={loggingIn || form.formState.isSubmitting}
               >
-                {isPending ? (
+                {loggingIn ? (
                   <>
                     <Loader2 className="mr-2 h-4 w-4 animate-spin" />
                     Connecting...
@@ -157,7 +175,7 @@ export default function RouteComponent() {
                     type="button"
                     variant="link"
                     className="p-0 h-auto font-normal"
-                    disabled={isPending}
+                    disabled={loggingIn}
                   >
                     Sign up
                   </Button>
