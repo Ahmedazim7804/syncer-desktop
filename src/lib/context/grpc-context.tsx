@@ -1,6 +1,6 @@
 import { Channel, invoke } from "@tauri-apps/api/core";
 import { createContext, ReactNode, useCallback, useContext, useEffect, useState } from "react";
-import { getTokenSync } from "../hooks/useToken";
+import { getAuthInfoSync } from "../actions/getAuthData";
 
 type GrpcContextType = {
     isConnected: boolean,
@@ -36,10 +36,10 @@ export function GrpcProvider({ children }: { children: ReactNode }) {
     }, [])
 
     const startStream = useCallback(() => {
-        const token = getTokenSync()
+        const authInfo = getAuthInfoSync()
         invoke('stream_messages', {
             onEvent: channel,
-            token: token.access_token,
+            token: authInfo.token.access_token,
         })
     }, [])
 

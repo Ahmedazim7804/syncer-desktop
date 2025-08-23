@@ -1,23 +1,29 @@
 import { client } from "@/lib/api/gen/client.gen";
-import logger from "@/lib/logger";
-import { fetch } from '@tauri-apps/plugin-http'
+import { getAuthInfoSync } from "./actions/getAuthData";
 
 export function setupClient() {
     client.setConfig({
-        baseUrl: "http://localhost:8000",
-        credentials: "include",
-        fetch: fetch
-        // withCredentials: true,
-        // auth: useGetAuthToken() ?? "",
+        baseURL: "http://localhost:8000",
+        withCredentials: true,
     })
 
-    // client.instance.interceptors.request.use((config) => {
-    //     const token = useGetAuthToken()
-    //     if (token) {
-    //         config.headers.Authorization = `Bearer ${token}`
-    //     }
-    //     return config
-    // })
+    client.instance.interceptors.request.use((config) => {
+        try {
+            const authInfo = getAuthInfoSync()
+            const token = authInfo?.token
+            const serverUrl = authInfo?.serverUrl
+
+            if (config.baseURL === undefined) {
+                config.baseURL = serverUrl
+            }
+            
+            if (token) {
+                config.headers.Authorization = `Bearer ${token.access_token}`
+            }
+        } catch (_) {}
+
+        return config
+    })
 
     // client.instance.interceptors.request.use((response) => {
     //     logger.info(`Request`, `${response.method} ${response.url} | ${response.headers['Authorization'] ?? 'No Authorization'}`)

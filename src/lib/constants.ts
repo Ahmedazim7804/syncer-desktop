@@ -1,3 +1,3 @@
 export enum StoreKeys {
-  TOKEN = 'token.json',
+  AUTH = 'auth.json',
 }

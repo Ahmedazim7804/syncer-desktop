@@ -1,20 +1,28 @@
 import { useMutation } from "@tanstack/react-query";
-import { getAccessTokenWithPasswordApiV1AuthLoginPostMutation, getAccessTokenWithRefreshTokenApiV1AuthRefreshPostMutation, getAccessTokenWithRefreshTokenApiV1AuthRefreshPostOptions } from "../api/gen/@tanstack/react-query.gen";
-import { useRouter } from "@tanstack/react-router";
-import { getAccessTokenWithRefreshTokenApiV1AuthRefreshPost } from "../api/gen";
+import { getAccessTokenWithPasswordApiV1AuthLoginPostMutation, getAccessTokenWithRefreshTokenApiV1AuthRefreshPostMutation} from "../api/gen/@tanstack/react-query.gen";
+import { useState } from "react";
+import { GetAccessTokenWithPasswordApiV1AuthLoginPostResponse } from "../api/gen";
 
-export default function useLogin() {
-    const router = useRouter();
+export default function useLogin(onLoginSuccess?: (responseData: GetAccessTokenWithPasswordApiV1AuthLoginPostResponse) => Promise<void>)  {
+    const [waiting, setWaiting] = useState(false);
+
     const { isPending, mutateAsync: loginAsync, data, error } = useMutation({
         ...getAccessTokenWithPasswordApiV1AuthLoginPostMutation(),
-        onSuccess(data, variables, context) {
-            router.navigate({ to: "/" });
+        onMutate: () => {
+            setWaiting(true);
+        },
+        onSuccess: async (responseData, __, ___) => {
+            await onLoginSuccess?.(responseData)
+            setWaiting(false);
+        },
+        onError: () => {
+            setWaiting(false);
         },
     });
 
     return {
         data,
-        isPending,
+        isPending: isPending || waiting,
         loginAsync,
         error,
     }

@@ -9,8 +9,9 @@ import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from '
 import { Eye, EyeOff, Loader2 } from 'lucide-react'
 import { LoginFormData, loginSchema } from '@/lib/zod/auth-schema'
 import useLogin from '@/lib/hooks/useLogin'
-import useStore from '@/lib/hooks/useStore'
+import useStore from '@/lib/actions/useStore'
 import { StoreKeys } from '@/lib/constants'
+import useGetAuthInfo from '@/lib/actions/getAuthData'
 
 export const Route = createFileRoute('/_auth/_auth/login')({
   component: RouteComponent,
@@ -19,8 +20,17 @@ export const Route = createFileRoute('/_auth/_auth/login')({
 export default function RouteComponent() {
   const [showPassword, setShowPassword] = React.useState(false)
   const router = useRouter();
-  const { loginAsync, isPending: loggingIn, error } = useLogin();
-  const { setStore } = useStore(StoreKeys.TOKEN);
+  const { setAuthData } = useGetAuthInfo();
+  const { loginAsync, isPending: loggingIn, error } = useLogin(async (responseData) => {
+    console.log(responseData);
+    await setAuthData(
+      {
+        access_token: responseData?.access_token,
+        refresh_token: responseData?.refresh_token,
+      },
+      form.getValues('serverUrl')
+    )
+  });
 
 
   const form = useForm<LoginFormData>({
@@ -43,12 +53,6 @@ export default function RouteComponent() {
       console.error(error);
       return;
     }
-    console.log(loginResponse?.access_token)
-    console.log(loginResponse?.refresh_token)
-    await setStore('token', {
-      access_token: loginResponse?.access_token,
-      refresh_token: loginResponse?.refresh_token,
-    });
 
     router.navigate({ to: "/dashboard" });
   }

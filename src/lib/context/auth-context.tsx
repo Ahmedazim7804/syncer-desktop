@@ -1,10 +1,8 @@
 import { createContext, useContext, ReactNode, useMemo, useState, useEffect, useCallback} from 'react';
 import { getMeApiV1MeGet } from '../api/gen';
-import { Token } from '../interfaces/token';
-import useStore from '../hooks/useStore';
+import { Token } from '../interfaces/auth';
 import { useRefreshToken } from '../hooks/useLogin';
-import { StoreKeys } from '../constants';
-import useGetToken from '../hooks/useToken';
+import useGetAuthInfo from '../actions/getAuthData';
 
 interface User {
   id: string;
@@ -21,11 +19,12 @@ interface AuthContextType {
 const AuthContext = createContext<AuthContextType | undefined>(undefined);
 
 export const AuthProvider = ({ children }: { children: ReactNode }) => {
-  const { token, fetchingToken, refetchToken, setToken } = useGetToken();
+  const { data, fetchingData, setToken } = useGetAuthInfo();
   const [user, setUser] = useState<User | undefined>(undefined);
   const [loading, setLoading] = useState(true);
   const { refreshTokenAsync} = useRefreshToken();
 
+  const token = useMemo(() => data?.token, [data]);
   function completeProcess(user: User | undefined) {
     if (!user) {
       setUser(undefined);
@@ -63,14 +62,14 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
   }, [token, setToken]);
 
   const getUser = useCallback(async (retry: boolean = true) => {
-    if (!token) {
+    if (!data?.token.access_token) {
       return;
     }
 
     try {
       const user = await getMeApiV1MeGet({
         headers: {
-          Authorization: `Bearer ${token!.access_token}`,
+          Authorization: `Bearer ${data?.token.access_token}`,
         },
       })
     
@@ -84,10 +83,10 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
       completeProcess(undefined);
     }
 
-  }, [token]);
+  }, [token, refreshToken]);
 
   useEffect(() => {
-    if (!token && !fetchingToken) {
+    if (!token && !fetchingData) {
       setLoading(false);
       return;
     }
