@@ -12,7 +12,7 @@ export default function useLogin(onLoginSuccess?: (responseData: GetAccessTokenW
             setWaiting(true);
         },
         onSuccess: async (responseData, __, ___) => {
-            await onLoginSuccess?.(responseData)
+            await onLoginSuccess?.(responseData);
             setWaiting(false);
         },
         onError: () => {

@@ -3,7 +3,7 @@ import { Navigate, Outlet, createRootRoute, useRouter } from '@tanstack/react-ro
 import { TanStackRouterDevtools } from '@tanstack/react-router-devtools'
 import { AuthProvider, useAuth } from '@/lib/context/auth-context'
 import { PUBLIC_ROUTES } from '@/lib/public-routes'
-import { SidebarInset, SidebarProvider, SidebarTrigger } from '@/components/ui/sidebar'
+import { SidebarInset, SidebarProvider } from '@/components/ui/sidebar'
 import SidebarComponent from '@/components/custom/sidebar/sidebar'
 import Navbar from '@/components/custom/navbar'
 import { GrpcProvider } from '@/lib/context/grpc-context'

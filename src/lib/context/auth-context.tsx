@@ -1,8 +1,5 @@
-import { createContext, useContext, ReactNode, useMemo, useState, useEffect, useCallback} from 'react';
-import { getMeApiV1MeGet } from '../api/gen';
-import { Token } from '../interfaces/auth';
-import { useRefreshToken } from '../hooks/useLogin';
-import useGetAuthInfo from '../actions/getAuthData';
+import { createContext, useContext, ReactNode } from 'react';
+import { useAuthState } from '../hooks/useAuthState';
 
 interface User {
   id: string;
@@ -14,92 +11,17 @@ interface AuthContextType {
   isLoggedIn: boolean;
   user: User | undefined;
   loading: boolean;
+  serverUrl: string | undefined;
+  logout: () => Promise<void>;
 }
 
 const AuthContext = createContext<AuthContextType | undefined>(undefined);
 
 export const AuthProvider = ({ children }: { children: ReactNode }) => {
-  const { data, fetchingData, setToken } = useGetAuthInfo();
-  const [user, setUser] = useState<User | undefined>(undefined);
-  const [loading, setLoading] = useState(true);
-  const { refreshTokenAsync} = useRefreshToken();
-
-  const token = useMemo(() => data?.token, [data]);
-  function completeProcess(user: User | undefined) {
-    if (!user) {
-      setUser(undefined);
-      setLoading(false);
-      return;
-    } else {
-      setUser(user);
-      setLoading(false);
-    }
-
-  }
-
-  const refreshToken = useCallback(async (): Promise<boolean> => {
-    if (!token?.refresh_token) {
-      return false;
-    }
-
-    try {
-      const refreshedToken = await refreshTokenAsync({
-        body: {
-          refresh_token: token.refresh_token,
-        },
-      })
-
-      const newToken: Token = {
-        access_token: refreshedToken.access_token,
-        refresh_token: refreshedToken.refresh_token,
-      }
-      await setToken(newToken);
-      return true;
-    } catch (e) {
-      return false;
-    }
-
-  }, [token, setToken]);
-
-  const getUser = useCallback(async (retry: boolean = true) => {
-    if (!data?.token.access_token) {
-      return;
-    }
-
-    try {
-      const user = await getMeApiV1MeGet({
-        headers: {
-          Authorization: `Bearer ${data?.token.access_token}`,
-        },
-      })
-    
-      if (user.status === 401 && retry) {
-        if (await refreshToken()) return getUser(false);
-      }
-
-      completeProcess(user.data);
-    } 
-    catch (e) {
-      completeProcess(undefined);
-    }
-
-  }, [token, refreshToken]);
-
-  useEffect(() => {
-    if (!token && !fetchingData) {
-      setLoading(false);
-      return;
-    }
-
-    getUser();
-  }, [token])
-
-  const isLoggedIn = useMemo(() => {
-    return Boolean(token && token.access_token && token.refresh_token && !loading && user);
-  }, [token, loading, user]);
+  const authState = useAuthState();
 
   return (
-    <AuthContext.Provider value={{ isLoggedIn, user, loading }}>
+    <AuthContext.Provider value={authState}>
       {children}
     </AuthContext.Provider>
   );

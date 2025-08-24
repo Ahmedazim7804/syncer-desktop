@@ -19,7 +19,6 @@ export default function useGetAuthInfo() {
     const [auth, setAuth] = useState<AuthData | undefined>(undefined);
 
     async function refetchAuthData() {
-
         if (authInfoCache) {
             setAuth(authInfoCache);
             setFetchingData(false);
@@ -27,46 +26,65 @@ export default function useGetAuthInfo() {
         }
 
         setFetchingData(true);
-        const token = await getStore<Token>('token');
-        const serverUrl = await getStore<string>('serverUrl');
-        if (!token || !token.access_token || !token.refresh_token || !serverUrl) {
-            setFetchingData(false);
-        } else {
-            setAuth({
-                token,
-                serverUrl
-            });
-            authInfoCache = {
-                token,
-                serverUrl
-            };
+        try {
+            const token = await getStore<Token>('token');
+            const serverUrl = await getStore<string>('serverUrl');
+            
+            if (!token || !token.access_token || !token.refresh_token || !serverUrl) {
+                setAuth(undefined);
+                authInfoCache = undefined;
+            } else {
+                const authData = { token, serverUrl };
+                setAuth(authData);
+                authInfoCache = authData;
+            }
+        } catch (error) {
+            console.error('Failed to fetch auth data:', error);
+            setAuth(undefined);
+            authInfoCache = undefined;
+        } finally {
             setFetchingData(false);
         }
     }
 
     async function setToken(token: Token) {
+        if (!auth?.serverUrl) {
+            throw new Error('Cannot set token without server URL');
+        }
+        
         await setStore('token', token);
-        authInfoCache = {
-            ...auth!,
-            token,
-        };
-        setAuth((prev) => ({ ...prev!, token}));
+        const newAuthData = { ...auth, token };
+        authInfoCache = newAuthData;
+        setAuth(newAuthData);
     }
 
     async function setAuthData(token: Token, serverUrl: string) {
         await setStore('token', token);
         await setStore('serverUrl', serverUrl);
-        authInfoCache = {
-            token,
-            serverUrl
-        };
+        const newAuthData = { token, serverUrl };
+        authInfoCache = newAuthData;
+        setAuth(newAuthData);
+    }
+
+    async function clearAuthData() {
+        await setStore('token', { access_token: '', refresh_token: '' });
+        await setStore('serverUrl', '');
+        authInfoCache = undefined;
+        setAuth(undefined);
     }
 
     useEffect(() => {
         if (!auth) {
-            refetchAuthData()
+            refetchAuthData();
         }
     }, []);
 
-    return { fetchingData, data: auth, refetchAuthData, setToken, setAuthData };
+    return { 
+        fetchingData, 
+        data: auth, 
+        refetchAuthData, 
+        setToken, 
+        setAuthData,
+        clearAuthData 
+    };
 }

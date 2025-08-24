@@ -9,8 +9,7 @@ import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from '
 import { Eye, EyeOff, Loader2 } from 'lucide-react'
 import { LoginFormData, loginSchema } from '@/lib/zod/auth-schema'
 import useLogin from '@/lib/hooks/useLogin'
-import useStore from '@/lib/actions/useStore'
-import { StoreKeys } from '@/lib/constants'
+
 import useGetAuthInfo from '@/lib/actions/getAuthData'
 
 export const Route = createFileRoute('/_auth/_auth/login')({
@@ -21,17 +20,17 @@ export default function RouteComponent() {
   const [showPassword, setShowPassword] = React.useState(false)
   const router = useRouter();
   const { setAuthData } = useGetAuthInfo();
+  
   const { loginAsync, isPending: loggingIn, error } = useLogin(async (responseData) => {
-    console.log(responseData);
+    console.log('Login successful:', responseData);
     await setAuthData(
       {
         access_token: responseData?.access_token,
         refresh_token: responseData?.refresh_token,
       },
       form.getValues('serverUrl')
-    )
+    );
   });
-
 
   const form = useForm<LoginFormData>({
     resolver: zodResolver(loginSchema),
@@ -43,18 +42,23 @@ export default function RouteComponent() {
   })
 
   const onSubmit = async (data: LoginFormData) => {
-    const loginResponse = await loginAsync({
-      body: {
-        device: data.device,
-        password: data.password,
+    try {
+      const loginResponse = await loginAsync({
+        body: {
+          device: data.device,
+          password: data.password,
+        },
+        baseURL: data.serverUrl, // Pass server URL to the API call
+      });
+      
+      if (loginResponse && !error) {
+        // Login successful, navigate to dashboard
+        router.navigate({ to: "/dashboard" });
       }
-    });
-    if (error) {
-      console.error(error);
-      return;
+    } catch (err) {
+      console.error('Login failed:', err);
+      // Error handling is done by the mutation
     }
-
-    router.navigate({ to: "/dashboard" });
   }
 
   return (
@@ -107,7 +111,7 @@ export default function RouteComponent() {
                         value={field.value}
                         onChange={field.onChange}
                         onBlur={field.onBlur}
-                        placeholder="Enter your server url"
+                        placeholder="https://your-server.com or http://localhost:8000"
                         disabled={loggingIn}
                       />
                     </FormControl>
