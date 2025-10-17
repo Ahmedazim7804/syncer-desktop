@@ -31,13 +31,25 @@ export type Client = {
    */
   id: string;
   /**
+   * Ip
+   */
+  ip: string;
+  /**
    * Device
    */
   device: string;
   /**
+   * Platform
+   */
+  platform: string;
+  /**
    * Created At
    */
   created_at: string;
+  /**
+   * Last Seen
+   */
+  last_seen: string;
 };
 
 /**
@@ -49,6 +61,11 @@ export type HttpValidationError = {
    */
   detail?: Array<ValidationError>;
 };
+
+/**
+ * Platform
+ */
+export type Platform = "android" | "linux";
 
 /**
  * RefreshTokenRequest
@@ -65,13 +82,22 @@ export type RefreshTokenRequest = {
  */
 export type UserLoginForm = {
   /**
-   * Password
+   * Id
    */
-  password: string;
+  id: string;
   /**
    * Device
    */
   device: string;
+  /**
+   * Ip
+   */
+  ip: string;
+  /**
+   * Password
+   */
+  password: string;
+  platform: Platform;
 };
 
 /**

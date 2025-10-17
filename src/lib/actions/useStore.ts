@@ -7,7 +7,12 @@ const storeMap = new Map<string, LazyStore>();
 
 function getStoreInstance(storeName: string): LazyStore {
     if (!storeMap.has(storeName)) {
-        storeMap.set(storeName, new LazyStore(storeName, {autoSave: true}));
+        storeMap.set(storeName, new LazyStore(storeName, {
+            defaults: {
+
+            },
+            autoSave: true,
+        }));
     }
     return storeMap.get(storeName)!;
 }

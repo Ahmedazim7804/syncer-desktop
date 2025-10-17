@@ -10,6 +10,7 @@ pub fn main() -> Result<(), Box<dyn std::error::Error>> {
         .protoc_arg("--experimental_allow_proto3_optional") // for older systems
         .build_client(true)
         .build_server(true)
+        .type_attribute(".", "#[derive(serde::Serialize, serde::Deserialize)]")
         .file_descriptor_set_path(out_dir.join("store_descriptor.bin"))
         .out_dir("./src")
         .compile_protos(&proto_files, &["protos"])?;

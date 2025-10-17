@@ -46,6 +46,9 @@ export default function RouteComponent() {
       const loginResponse = await loginAsync({
         body: {
           device: data.device,
+          platform: "linux",
+          id: "12",
+          ip: "127.0.0.1",
           password: data.password,
         },
         baseURL: data.serverUrl, // Pass server URL to the API call

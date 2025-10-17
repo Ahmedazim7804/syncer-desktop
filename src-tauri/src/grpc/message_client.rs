@@ -1,10 +1,14 @@
 use crate::core;
-use crate::syncer::message_service_client::MessageServiceClient;
-use crate::syncer::server_message::Payload;
-use crate::syncer::{ClientMessage, ServerMessage};
+use crate::syncer::{
+    message_service_client::MessageServiceClient, ClientMessage, ClipboardMessage,
+    ConnectedDevices, DeviceInfo, GenericTextMessage, ServerMessage,
+};
 use serde::{Deserialize, Serialize};
+use serde_with::serde_as;
+use std::str::FromStr;
 use std::time::{SystemTime, UNIX_EPOCH};
 use tauri_plugin_http::reqwest::tls;
+use tonic::metadata::{self, MetadataMap, MetadataValue};
 use tonic::transport::{Channel, ClientTlsConfig, Endpoint};
 use tonic::{Request, Streaming};
 use uuid::Uuid;
@@ -19,68 +23,6 @@ pub struct GrpcMessageClient {
     client: MessageServiceClient<Channel>,
 }
 
-#[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct SerializableClipboardMessage {
-    pub text: String,
-}
-
-#[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct SerializableGenericTextMessage {
-    pub text: String,
-}
-
-#[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct SerializableAuthMessage {
-    pub text: String,
-}
-
-#[derive(Debug, Clone, Serialize, Deserialize)]
-pub enum SerializablePayload {
-    Clipboard(SerializableClipboardMessage),
-    GenericText(SerializableGenericTextMessage),
-    Auth(SerializableAuthMessage),
-    Empty(()),
-}
-
-#[derive(Debug, Clone, Serialize, Deserialize)]
-#[serde(rename_all = "camelCase", tag = "event")]
-pub struct SerializableServerMessage {
-    pub id: String,
-    pub sender_id: String,
-    pub created_at: i64,
-    pub r#type: i32,
-    pub payload: SerializablePayload,
-}
-
-impl From<ServerMessage> for SerializableServerMessage {
-    fn from(message: ServerMessage) -> Self {
-        Self {
-            id: message.id,
-            sender_id: message.sender_id,
-            created_at: message.created_at,
-            r#type: message.r#type,
-            payload: match message.payload {
-                Some(payload) => match payload {
-                    Payload::Clipboard(message) => {
-                        SerializablePayload::Clipboard(SerializableClipboardMessage {
-                            text: message.content,
-                        })
-                    }
-                    Payload::GenericText(message) => {
-                        SerializablePayload::GenericText(SerializableGenericTextMessage {
-                            text: message.text,
-                        })
-                    }
-                    Payload::Auth(message) => SerializablePayload::Auth(SerializableAuthMessage {
-                        text: message.message,
-                    }),
-                },
-                None => SerializablePayload::Empty(()),
-            },
-        }
-    }
-}
-
 impl GrpcMessageClient {
     pub fn new(tls_config: ClientTlsConfig) -> Self {
         Self {
@@ -92,9 +34,9 @@ impl GrpcMessageClient {
         }
     }
 
-    pub async fn is_connected(&mut self) -> bool {
+    pub async fn is_reachable(&mut self) -> bool {
         let request = Request::new(());
-        let response = self.client.is_connected(request).await;
+        let response = self.client.is_reachable(request).await;
 
         if let Ok(response) = response {
             *response.get_ref()
@@ -112,17 +54,14 @@ impl GrpcMessageClient {
 
     pub async fn listen(&mut self, token: String) -> Result<Streaming<ServerMessage>, GrpcError> {
         println!("sending request");
-        let request = Request::new(ClientMessage {
-            id: Uuid::new_v4().to_string(),
-            token,
-            created_at: SystemTime::now()
-                .duration_since(UNIX_EPOCH)
-                .unwrap()
-                .as_millis() as i64,
-            r#type: 1,
-            payload: None,
-        });
-        println!("request sent");
+        let mut request = Request::new(());
+        println!("token: {:?}", token);
+        let metadata_value = MetadataValue::from_str(&token).map_err(|_| GrpcError {
+            message: "Invalid token for metadata".to_string(),
+        })?;
+        request
+            .metadata_mut()
+            .insert("authorization", metadata_value);
 
         let response = self.client.stream_messages(request).await;
         println!("response received");

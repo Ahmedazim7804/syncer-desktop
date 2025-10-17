@@ -30,7 +30,7 @@ export function GrpcProvider({ children }: { children: ReactNode }) {
     }
 
     const getIsConnected = useCallback(async () => {
-        const res = await invoke('is_connected') as boolean
+        const res = await invoke('is_reachable') as boolean
         setIsConnected(res)
         return res
     }, [])

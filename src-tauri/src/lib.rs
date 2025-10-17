@@ -28,7 +28,7 @@ pub fn run() -> Result<(), Box<dyn std::error::Error>> {
         .plugin(tauri_plugin_opener::init())
         .plugin(tauri_plugin_http::init())
         .invoke_handler(tauri::generate_handler![
-            commands::syncer::is_connected,
+            commands::syncer::is_reachable,
             commands::syncer::stream_messages,
             greet
         ])
