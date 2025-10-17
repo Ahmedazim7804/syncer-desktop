@@ -1,18 +1,16 @@
 import { createContext, useContext, ReactNode } from 'react';
 import { useAuthState } from '../hooks/useAuthState';
-
-interface User {
-  id: string;
-  device: string;
-  [key: string]: any;
-}
+import { Client } from '../api/gen';
+import { AuthErrors } from '../interfaces/errors';
 
 interface AuthContextType {
   isLoggedIn: boolean;
-  user: User | undefined;
+  user: Client | undefined;
+  error: AuthErrors | undefined;
   loading: boolean;
   serverUrl: string | undefined;
   logout: () => Promise<void>;
+  refetchUser: () => Promise<any>;
 }
 
 const AuthContext = createContext<AuthContextType | undefined>(undefined);

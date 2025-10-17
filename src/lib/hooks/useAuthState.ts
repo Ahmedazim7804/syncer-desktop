@@ -1,17 +1,21 @@
 import { useQuery, useQueryClient } from '@tanstack/react-query';
-import { getMeApiV1MeGet } from '../api/gen';
+import { Client, getMeApiV1MeGet } from '../api/gen';
 import { Token } from '../interfaces/auth';
 import { useRefreshToken } from './useLogin';
 import useGetAuthInfo from '../actions/getAuthData';
-import { useCallback, useEffect } from 'react';
+import { useCallback, useEffect, useState } from 'react';
+import { AxiosError } from 'axios';
+import { AuthErrors, SyncerError } from '../interfaces/errors';
 
 export function useAuthState() {
   const { data, fetchingData, setToken, clearAuthData } = useGetAuthInfo();
   const { refreshTokenAsync } = useRefreshToken();
   const queryClient = useQueryClient();
+  const [finalLoading, setFinalLoading] = useState(true);
 
   const token = data?.token;
   const serverUrl = data?.serverUrl;
+  let authError: AuthErrors | undefined = undefined;
 
   // Query to validate token and get user data
   const { 
@@ -19,37 +23,61 @@ export function useAuthState() {
     error: userError, 
     isLoading: userLoading,
     refetch: refetchUser
-  } = useQuery({
+  } = useQuery<Client|undefined, SyncerError<AuthErrors>>({
     queryKey: ['user', token?.access_token, serverUrl],
-    queryFn: async () => {
+    queryFn: async (): Promise<Client | undefined> => {
       if (!token?.access_token || !serverUrl) {
-        throw new Error('No token or server URL');
+        throw new SyncerError<AuthErrors>(
+          "No access token or server URL found",
+          AuthErrors.MUST_LOGOUT
+        );
       }
       
-      const response = await getMeApiV1MeGet({
-        headers: {
-          Authorization: `Bearer ${token.access_token}`,
-        },
-        baseURL: serverUrl,
-      });
-      
-      if (response.status === 401) {
-        throw new Error('Unauthorized');
+      try {
+        const response = await getMeApiV1MeGet({
+          headers: {
+            Authorization: `Bearer ${token.access_token}`,
+          },
+          baseURL: serverUrl,
+        });
+
+        if (response.status === 401) {
+          throw new SyncerError<AuthErrors>(
+            "Unauthorized",
+            AuthErrors.UNAUTHORIZED
+          );
+        } else if (response.status !== 200) {
+          throw new SyncerError<AuthErrors>(
+            "Error fetching user data",
+            AuthErrors.UNKNOWN_ERROR,
+          );
+        }
+
+        return response.data;
+      } catch (e) {
+        if (e instanceof SyncerError) {
+          throw e;
+        }
+        throw new SyncerError<AuthErrors>(
+          "Unknown error",
+          AuthErrors.UNKNOWN_ERROR,
+        );
       }
       
-      return response.data;
+      
     },
     enabled: Boolean(token?.access_token && serverUrl && !fetchingData),
     retry: (failureCount, error) => {
-      if (error.message === 'Unauthorized') return false;
+      if (error?.data === AuthErrors.UNAUTHORIZED) return false;
       return failureCount < 3;
     },
     staleTime: 5 * 60 * 1000,
   });
 
-  const refreshToken = useCallback(async (): Promise<boolean> => {
+  const refreshToken = useCallback(async (): Promise<AuthErrors | undefined> => {
     if (!token?.refresh_token || !serverUrl) {
-      return false;
+      authError = AuthErrors.MUST_LOGOUT;
+      return authError;
     }
 
     try {
@@ -70,23 +98,50 @@ export function useAuthState() {
       // Invalidate and refetch user data with new token
       queryClient.invalidateQueries({ queryKey: ['user'] });
       
-      return true;
+      authError = undefined;
+      return authError;
     } catch (e) {
-      console.error('Failed to refresh token:', e);
-      return false;
+      if (e instanceof AxiosError) {
+        if (e.response?.status === 401) {
+          return AuthErrors.UNAUTHORIZED
+        } else {
+          return AuthErrors.CONNECTION_ERROR
+        }
+      } 
+      return AuthErrors.UNKNOWN_ERROR
     }
   }, [token, setToken, refreshTokenAsync, serverUrl, queryClient]);
 
   useEffect(() => {
-    if (userError?.message === 'Unauthorized' && token?.refresh_token) {
-      refreshToken().then((success) => {
-        if (!success) {
-          // Refresh failed, clear auth data
-          logout();
+    if (userLoading) return;
+    async function handleError(error: SyncerError<AuthErrors> | null): Promise<AuthErrors | undefined> {
+      let finalError: AuthErrors | undefined = undefined;
+      if (error !== null) {
+        if (error.data === AuthErrors.UNAUTHORIZED) {
+          if (token?.refresh_token) {
+            const refreshedError = await refreshToken()
+            if (refreshedError === AuthErrors.MUST_LOGOUT) {
+              logout();
+            }
+            finalError = refreshedError;
+          } else {
+            finalError = AuthErrors.MUST_LOGOUT;
+          }
+        } else {
+          finalError = error.data;
         }
-      });
+        return finalError;
+      } else {
+        return undefined;
+      }
     }
-  }, [userError, token, refreshToken]);
+
+    handleError(userError).then((error) => {
+      authError = error ?? undefined;
+      setFinalLoading(fetchingData || userLoading);
+    });
+
+  }, [userError, token, refreshToken, userLoading]);
 
   const logout = useCallback(async () => {
     await clearAuthData();
@@ -96,22 +151,21 @@ export function useAuthState() {
   const isLoggedIn = Boolean(
     token?.access_token && 
     token?.refresh_token && 
-    !userLoading && 
+    !finalLoading && 
     userData && 
     serverUrl
   );
 
-  const loading = fetchingData || userLoading;
 
   return {
     isLoggedIn,
     user: userData,
-    loading,
+    error: authError,
+    loading: finalLoading,
     serverUrl,
     token,
     logout,
     refreshToken,
     refetchUser,
-    error: userError,
   };
 } 

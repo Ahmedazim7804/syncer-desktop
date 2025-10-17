@@ -1,7 +1,11 @@
-export interface HttpErrorObject {
-    status: number;
-    error: string;
-    message: string;
+export class SyncerError<T> extends Error {
+    constructor(public message: string, public data: T, public nameOfError: string | undefined = undefined, public stack: string | undefined = undefined) {
+        super(message);
+        this.message = message;
+        this.data = data;
+        this.name = nameOfError ?? ('SyncerError of type ' + typeof data);
+        this.stack = stack;
+    }
 }
 
 export interface Toast {
@@ -30,4 +34,11 @@ export interface ToastsOnStatusCodes {
     404: ToastsOnError | undefined;
     500: ToastsOnError | undefined;
     503: ToastsOnError | undefined;
+}
+
+export enum AuthErrors {
+    UNAUTHORIZED = 'Unauthorized',
+    CONNECTION_ERROR = 'Connection error',
+    UNKNOWN_ERROR = 'Unknown error',
+    MUST_LOGOUT = 'Must logout',
 }
