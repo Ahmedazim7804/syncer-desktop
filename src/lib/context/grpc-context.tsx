@@ -1,10 +1,11 @@
 import { Channel, invoke } from "@tauri-apps/api/core";
 import { createContext, ReactNode, useCallback, useContext, useEffect, useState } from "react";
 import { getAuthInfoSync } from "../actions/getAuthData";
+import { ServerMessage } from "../interfaces/syncer";
 
 type GrpcContextType = {
-    isConnected: boolean,
-    getIsConnected: () => Promise<boolean>
+    isReachable: boolean,
+    getIsReachable: () => Promise<boolean>
     startStream: () => void
     streamMessages: ServerMessage[]
 }
@@ -12,26 +13,28 @@ type GrpcContextType = {
 const GrpcContext = createContext<GrpcContextType | null>(null)
 
 export function GrpcProvider({ children }: { children: ReactNode }) {
-    const [isConnected, setIsConnected] = useState(false)
+    const [isReachable, setIsReachable] = useState(false)
     const [streamMessages, setStreamMessages] = useState<ServerMessage[]>([])
 
-    const channel = new Channel<ServerMessage>()
+    const channel = new Channel<any>()
     channel.onmessage = (event) => {
 
-        setStreamMessages(prev => [...prev, {
-            id: event.id,
-            senderId: event.senderId,
-            createdAt: event.createdAt,
-            type: event.type,
-            payload: {
-                content: (event.payload as any).Clipboard.text
-            },
-        }])
+        setStreamMessages(prev => [...prev, event])
+
+        // setStreamMessages(prev => [...prev, {
+        //     id: event.id,
+        //     senderId: event.senderId,
+        //     createdAt: event.createdAt,
+        //     type: event.type,
+        //     clipboard: event.clipboard,
+        //     connectedDevices: event.connectedDevices,
+        //     genericText: event.genericText,
+        // }])
     }
 
-    const getIsConnected = useCallback(async () => {
+    const getIsReachable = useCallback(async () => {
         const res = await invoke('is_reachable') as boolean
-        setIsConnected(res)
+        setIsReachable(res)
         return res
     }, [])
 
@@ -45,15 +48,15 @@ export function GrpcProvider({ children }: { children: ReactNode }) {
 
     // ------------------ Use Effects ------------------
     useEffect(() => {
-        getIsConnected()
-    }, [getIsConnected])
+        getIsReachable()
+    }, [])
 
     // --------------------------------------------------
 
     return (
         <GrpcContext.Provider value={{
-            isConnected,
-            getIsConnected,
+            isReachable,
+            getIsReachable,
             startStream,
             streamMessages,
         }}>

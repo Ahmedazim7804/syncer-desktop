@@ -1,6 +1,7 @@
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
 import { useGrpcContext } from '@/lib/context/grpc-context'
+import { ClipboardMessage, ConnectedDevices, GenericTextMessage, MessageType, ServerMessage } from '@/lib/interfaces/syncer'
 import { createFileRoute } from '@tanstack/react-router'
 import { useEffect, useState } from 'react'
 
@@ -10,17 +11,17 @@ export const Route = createFileRoute('/_home/dashboard')({
 
 function RouteComponent() {
   const [message, setMessage] = useState('')
-  const [connected, setConnected] = useState(false)
+  const [reachable, setReachable] = useState(false)
   
-  const { startStream, getIsConnected } = useGrpcContext()
+  const { startStream, getIsReachable } = useGrpcContext()
 
   useEffect(() => {
-    const fetchConnected = async () => {
-      const connected = await getIsConnected()
-      setConnected(connected)
+    const fetchReachable = async () => {
+      const isReachable = await getIsReachable()
+      setReachable(isReachable)
     }
-    fetchConnected()
-  }, [getIsConnected])
+    fetchReachable()
+  }, [getIsReachable])
 
   const handleConnect = async () => {
     startStream()
@@ -35,7 +36,7 @@ function RouteComponent() {
           <Button>Send</Button>
         </div>
         <div className='w-full h-full bg-accent rounded-lg p-4'>
-          {connected ? (
+          {reachable ? (
             <MessageList />
           ) : (
             <div className='flex flex-col gap-2'>
@@ -54,16 +55,31 @@ function MessageList() {
   return (
     <div className='flex flex-col gap-2'>
       {streamMessages.map((message) => (
-        <MessageItem key={message.id} message={(message.payload)} />
+        <MessageItem key={message.id} message={message.Clipboard || message.GenericText || message.ConnectedDevices} type={message.type} />
       ))}
     </div>
   )
 }
 
-function MessageItem({ message }: { message: any }) {
+function MessageItem({ message, type }: { message: ClipboardMessage | GenericTextMessage | ConnectedDevices | undefined, type: MessageType}) {
+
+  function getMessage(): string | undefined {
+    if (!message) return undefined
+    if (type === MessageType.CLIPBOARD) {
+      return (message as ClipboardMessage).content
+    } else if (type === MessageType.GENERIC_TEXT) {
+      return (message as GenericTextMessage).text
+    } else if (type === MessageType.CONNECTED_DEVICES) {
+      return (message as ConnectedDevices).devices.map((device) => device.name).join(', ');
+    }
+    return undefined
+  }
+  const messageText = getMessage()
+  console.log(messageText);
+
   return (
     <div className='flex flex-row gap-2'>
-      <div className='w-10 h-10 bg-accent rounded-full'>{message.content}</div>
+      <div className='w-10 h-10 bg-accent rounded-full'>{messageText}</div>
     </div>
   )
 }
