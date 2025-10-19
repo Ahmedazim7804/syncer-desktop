@@ -9,7 +9,12 @@ import {
   useState,
 } from "react";
 import useGetAuthInfo, { getAuthInfoSync } from "../actions/getAuthData";
-import { DeviceInfo, MessageType, ServerMessage } from "../interfaces/syncer";
+import {
+  ClientMessage,
+  DeviceInfo,
+  MessageType,
+  ServerMessage,
+} from "../interfaces/syncer";
 import { start } from "repl";
 import { useAuth } from "./auth-context";
 
@@ -20,6 +25,7 @@ type GrpcContextType = {
   isReachable: boolean;
   getIsReachable: () => Promise<boolean>;
   streamMessages: ServerMessage[];
+  sendMessage: (message: ClientMessage) => Promise<void>;
   devices: DeviceInfo[];
 };
 
@@ -56,7 +62,6 @@ export function GrpcProvider({ children }: { children: ReactNode }) {
   }, [isLoggedIn, authData?.token.access_token]);
 
   serverMessageChannel.onmessage = (event) => {
-    console.log("HELLO serverMessageChannel: {:?}", event);
     switch (event.type) {
       case MessageType.CONNECTED_DEVICES:
         setConnectedDevices(event.ConnectedDevices?.devices || []);
@@ -95,6 +100,16 @@ export function GrpcProvider({ children }: { children: ReactNode }) {
 
   // --------------------------------------------------
 
+  const sendMessage = useCallback(async (message: ClientMessage) => {
+    try {
+      await invoke("send_message", {
+        message,
+      });
+    } catch (error) {
+      throw error;
+    }
+  }, []);
+
   return (
     <GrpcContext.Provider
       value={{
@@ -102,6 +117,7 @@ export function GrpcProvider({ children }: { children: ReactNode }) {
         getIsReachable,
         streamMessages,
         devices: connectedDevices,
+        sendMessage,
       }}
     >
       {children}

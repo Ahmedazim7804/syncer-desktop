@@ -32,6 +32,7 @@ pub fn run() -> Result<(), Box<dyn std::error::Error>> {
             commands::syncer::is_reachable,
             commands::syncer::stream_messages,
             commands::syncer::connect,
+            commands::syncer::send_message,
             greet
         ])
         .run(tauri::generate_context!())

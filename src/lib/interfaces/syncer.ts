@@ -17,6 +17,7 @@ export enum MessageType {
   CLIPBOARD = 0,
   GENERIC_TEXT = 1,
   CONNECTED_DEVICES = 2,
+  SERVER_COMMAND = 3,
   UNRECOGNIZED = -1,
 }
 
@@ -31,6 +32,9 @@ export function messageTypeFromJSON(object: any): MessageType {
     case 2:
     case "CONNECTED_DEVICES":
       return MessageType.CONNECTED_DEVICES;
+    case 3:
+    case "SERVER_COMMAND":
+      return MessageType.SERVER_COMMAND;
     case -1:
     case "UNRECOGNIZED":
     default:
@@ -46,6 +50,8 @@ export function messageTypeToJSON(object: MessageType): string {
       return "GENERIC_TEXT";
     case MessageType.CONNECTED_DEVICES:
       return "CONNECTED_DEVICES";
+    case MessageType.SERVER_COMMAND:
+      return "SERVER_COMMAND";
     case MessageType.UNRECOGNIZED:
     default:
       return "UNRECOGNIZED";
@@ -73,9 +79,10 @@ export interface ClientMessage {
   id: string;
   createdAt: number;
   type: MessageType;
-  clipboard?: ClipboardMessage | undefined;
-  genericText?: GenericTextMessage | undefined;
+  Clipboard?: ClipboardMessage | undefined;
+  GenericText?: GenericTextMessage | undefined;
   empty?: Empty | undefined;
+  ServerCommand?: ServerCommand | undefined;
 }
 
 export interface ServerMessage {
@@ -86,6 +93,13 @@ export interface ServerMessage {
   Clipboard?: ClipboardMessage | undefined;
   ConnectedDevices?: ConnectedDevices | undefined;
   GenericText?: GenericTextMessage | undefined;
+}
+
+export interface ServerCommand {
+  /** command name */
+  command: string;
+  /** json encoded data */
+  data: string;
 }
 
 export interface GenericTextMessage {
@@ -351,7 +365,15 @@ export const ConnectedDevices: MessageFns<ConnectedDevices> = {
 };
 
 function createBaseClientMessage(): ClientMessage {
-  return { id: "", createdAt: 0, type: 0, clipboard: undefined, genericText: undefined, empty: undefined };
+  return {
+    id: "",
+    createdAt: 0,
+    type: 0,
+    Clipboard: undefined,
+    GenericText: undefined,
+    empty: undefined,
+    ServerCommand: undefined,
+  };
 }
 
 export const ClientMessage: MessageFns<ClientMessage> = {
@@ -365,14 +387,17 @@ export const ClientMessage: MessageFns<ClientMessage> = {
     if (message.type !== 0) {
       writer.uint32(24).int32(message.type);
     }
-    if (message.clipboard !== undefined) {
-      ClipboardMessage.encode(message.clipboard, writer.uint32(34).fork()).join();
+    if (message.Clipboard !== undefined) {
+      ClipboardMessage.encode(message.Clipboard, writer.uint32(34).fork()).join();
     }
-    if (message.genericText !== undefined) {
-      GenericTextMessage.encode(message.genericText, writer.uint32(42).fork()).join();
+    if (message.GenericText !== undefined) {
+      GenericTextMessage.encode(message.GenericText, writer.uint32(42).fork()).join();
     }
     if (message.empty !== undefined) {
       Empty.encode(message.empty, writer.uint32(50).fork()).join();
+    }
+    if (message.ServerCommand !== undefined) {
+      ServerCommand.encode(message.ServerCommand, writer.uint32(58).fork()).join();
     }
     return writer;
   },
@@ -413,7 +438,7 @@ export const ClientMessage: MessageFns<ClientMessage> = {
             break;
           }
 
-          message.clipboard = ClipboardMessage.decode(reader, reader.uint32());
+          message.Clipboard = ClipboardMessage.decode(reader, reader.uint32());
           continue;
         }
         case 5: {
@@ -421,7 +446,7 @@ export const ClientMessage: MessageFns<ClientMessage> = {
             break;
           }
 
-          message.genericText = GenericTextMessage.decode(reader, reader.uint32());
+          message.GenericText = GenericTextMessage.decode(reader, reader.uint32());
           continue;
         }
         case 6: {
@@ -430,6 +455,14 @@ export const ClientMessage: MessageFns<ClientMessage> = {
           }
 
           message.empty = Empty.decode(reader, reader.uint32());
+          continue;
+        }
+        case 7: {
+          if (tag !== 58) {
+            break;
+          }
+
+          message.ServerCommand = ServerCommand.decode(reader, reader.uint32());
           continue;
         }
       }
@@ -446,9 +479,10 @@ export const ClientMessage: MessageFns<ClientMessage> = {
       id: isSet(object.id) ? globalThis.String(object.id) : "",
       createdAt: isSet(object.createdAt) ? globalThis.Number(object.createdAt) : 0,
       type: isSet(object.type) ? messageTypeFromJSON(object.type) : 0,
-      clipboard: isSet(object.clipboard) ? ClipboardMessage.fromJSON(object.clipboard) : undefined,
-      genericText: isSet(object.genericText) ? GenericTextMessage.fromJSON(object.genericText) : undefined,
+      Clipboard: isSet(object.Clipboard) ? ClipboardMessage.fromJSON(object.Clipboard) : undefined,
+      GenericText: isSet(object.GenericText) ? GenericTextMessage.fromJSON(object.GenericText) : undefined,
       empty: isSet(object.empty) ? Empty.fromJSON(object.empty) : undefined,
+      ServerCommand: isSet(object.ServerCommand) ? ServerCommand.fromJSON(object.ServerCommand) : undefined,
     };
   },
 
@@ -463,14 +497,17 @@ export const ClientMessage: MessageFns<ClientMessage> = {
     if (message.type !== 0) {
       obj.type = messageTypeToJSON(message.type);
     }
-    if (message.clipboard !== undefined) {
-      obj.clipboard = ClipboardMessage.toJSON(message.clipboard);
+    if (message.Clipboard !== undefined) {
+      obj.Clipboard = ClipboardMessage.toJSON(message.Clipboard);
     }
-    if (message.genericText !== undefined) {
-      obj.genericText = GenericTextMessage.toJSON(message.genericText);
+    if (message.GenericText !== undefined) {
+      obj.GenericText = GenericTextMessage.toJSON(message.GenericText);
     }
     if (message.empty !== undefined) {
       obj.empty = Empty.toJSON(message.empty);
+    }
+    if (message.ServerCommand !== undefined) {
+      obj.ServerCommand = ServerCommand.toJSON(message.ServerCommand);
     }
     return obj;
   },
@@ -483,13 +520,16 @@ export const ClientMessage: MessageFns<ClientMessage> = {
     message.id = object.id ?? "";
     message.createdAt = object.createdAt ?? 0;
     message.type = object.type ?? 0;
-    message.clipboard = (object.clipboard !== undefined && object.clipboard !== null)
-      ? ClipboardMessage.fromPartial(object.clipboard)
+    message.Clipboard = (object.Clipboard !== undefined && object.Clipboard !== null)
+      ? ClipboardMessage.fromPartial(object.Clipboard)
       : undefined;
-    message.genericText = (object.genericText !== undefined && object.genericText !== null)
-      ? GenericTextMessage.fromPartial(object.genericText)
+    message.GenericText = (object.GenericText !== undefined && object.GenericText !== null)
+      ? GenericTextMessage.fromPartial(object.GenericText)
       : undefined;
     message.empty = (object.empty !== undefined && object.empty !== null) ? Empty.fromPartial(object.empty) : undefined;
+    message.ServerCommand = (object.ServerCommand !== undefined && object.ServerCommand !== null)
+      ? ServerCommand.fromPartial(object.ServerCommand)
+      : undefined;
     return message;
   },
 };
@@ -660,6 +700,82 @@ export const ServerMessage: MessageFns<ServerMessage> = {
     message.GenericText = (object.GenericText !== undefined && object.GenericText !== null)
       ? GenericTextMessage.fromPartial(object.GenericText)
       : undefined;
+    return message;
+  },
+};
+
+function createBaseServerCommand(): ServerCommand {
+  return { command: "", data: "" };
+}
+
+export const ServerCommand: MessageFns<ServerCommand> = {
+  encode(message: ServerCommand, writer: BinaryWriter = new BinaryWriter()): BinaryWriter {
+    if (message.command !== "") {
+      writer.uint32(10).string(message.command);
+    }
+    if (message.data !== "") {
+      writer.uint32(18).string(message.data);
+    }
+    return writer;
+  },
+
+  decode(input: BinaryReader | Uint8Array, length?: number): ServerCommand {
+    const reader = input instanceof BinaryReader ? input : new BinaryReader(input);
+    const end = length === undefined ? reader.len : reader.pos + length;
+    const message = createBaseServerCommand();
+    while (reader.pos < end) {
+      const tag = reader.uint32();
+      switch (tag >>> 3) {
+        case 1: {
+          if (tag !== 10) {
+            break;
+          }
+
+          message.command = reader.string();
+          continue;
+        }
+        case 2: {
+          if (tag !== 18) {
+            break;
+          }
+
+          message.data = reader.string();
+          continue;
+        }
+      }
+      if ((tag & 7) === 4 || tag === 0) {
+        break;
+      }
+      reader.skip(tag & 7);
+    }
+    return message;
+  },
+
+  fromJSON(object: any): ServerCommand {
+    return {
+      command: isSet(object.command) ? globalThis.String(object.command) : "",
+      data: isSet(object.data) ? globalThis.String(object.data) : "",
+    };
+  },
+
+  toJSON(message: ServerCommand): unknown {
+    const obj: any = {};
+    if (message.command !== "") {
+      obj.command = message.command;
+    }
+    if (message.data !== "") {
+      obj.data = message.data;
+    }
+    return obj;
+  },
+
+  create<I extends Exact<DeepPartial<ServerCommand>, I>>(base?: I): ServerCommand {
+    return ServerCommand.fromPartial(base ?? ({} as any));
+  },
+  fromPartial<I extends Exact<DeepPartial<ServerCommand>, I>>(object: I): ServerCommand {
+    const message = createBaseServerCommand();
+    message.command = object.command ?? "";
+    message.data = object.data ?? "";
     return message;
   },
 };

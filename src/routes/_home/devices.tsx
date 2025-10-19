@@ -4,7 +4,7 @@ import { Input } from "@/components/ui/input";
 import { Separator } from "@/components/ui/separator";
 import { Skeleton } from "@/components/ui/skeleton";
 import { useGrpcContext } from "@/lib/context/grpc-context";
-import { DeviceInfo } from "@/lib/interfaces/syncer";
+import { DeviceInfo, MessageType } from "@/lib/interfaces/syncer";
 import { createFileRoute } from "@tanstack/react-router";
 import { useEffect, useMemo, useState } from "react";
 import {
@@ -22,11 +22,21 @@ export const Route = createFileRoute("/_home/devices")({
 });
 
 function RouteComponent() {
-  const { devices, isReachable } = useGrpcContext();
+  const { devices, isReachable, sendMessage } = useGrpcContext();
   const [searchQuery, setSearchQuery] = useState("");
   const [isRefreshing, setIsRefreshing] = useState(false);
 
-  const handleRefresh = async () => {};
+  const handleRefresh = async () => {
+    await sendMessage({
+      id: crypto.randomUUID(),
+      createdAt: Math.floor(Date.now() / 1000),
+      type: MessageType.SERVER_COMMAND,
+      ServerCommand: {
+        command: "refresh",
+        data: JSON.stringify({}),
+      },
+    });
+  };
 
   const filteredDevices = useMemo(() => {
     if (!searchQuery.trim()) return devices;
@@ -143,7 +153,7 @@ function DeviceItem({ device }: { device: DeviceInfo }) {
       case "windows":
         return <MdComputer className="w-6 h-6" />;
       default:
-        return <FaDesktop className="w-6 h-6" />;
+        return <FaLinux className="w-6 h-6" />;
     }
   };
 

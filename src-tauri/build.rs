@@ -46,7 +46,7 @@ pub fn main() -> Result<(), Box<dyn std::error::Error>> {
             // This renames the *variants* (Clipboard -> clipboard)
             // CORRECTED PATH: Use PascalCase 'ServerMessage'
             &format!("{}.ServerMessage.Payload", proto_package),
-            "#[serde(rename_all = \"camelCase\")]",
+            "#[serde(rename_all = \"snake_case\")]",
         )
         // --- ClientMessage oneof ---
         .field_attribute(
@@ -56,7 +56,7 @@ pub fn main() -> Result<(), Box<dyn std::error::Error>> {
         .type_attribute(
             // CORRECTED PATH: Use PascalCase 'ClientMessage'
             &format!("{}.ClientMessage.Payload", proto_package),
-            "#[serde(rename_all = \"camelCase\")]",
+            "#[serde(rename_all = \"snake_case\")]",
         )
         .file_descriptor_set_path(out_dir.join("store_descriptor.bin"))
         .out_dir("./src")

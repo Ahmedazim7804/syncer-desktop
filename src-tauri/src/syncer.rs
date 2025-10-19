@@ -40,7 +40,7 @@ pub struct ClientMessage {
     pub created_at: i64,
     #[prost(enumeration = "MessageType", tag = "3")]
     pub r#type: i32,
-    #[prost(oneof = "client_message::Payload", tags = "4, 5, 6")]
+    #[prost(oneof = "client_message::Payload", tags = "4, 5, 6, 7")]
     #[serde(flatten)]
     pub payload: ::core::option::Option<client_message::Payload>,
 }
@@ -55,6 +55,8 @@ pub mod client_message {
         GenericText(super::GenericTextMessage),
         #[prost(message, tag = "6")]
         Empty(()),
+        #[prost(message, tag = "7")]
+        ServerCommand(super::ServerCommand),
     }
 }
 #[derive(serde::Serialize, serde::Deserialize)]
@@ -87,6 +89,16 @@ pub mod server_message {
     }
 }
 #[derive(serde::Serialize, serde::Deserialize)]
+#[derive(Clone, PartialEq, ::prost::Message)]
+pub struct ServerCommand {
+    /// command name
+    #[prost(string, tag = "1")]
+    pub command: ::prost::alloc::string::String,
+    /// json encoded data
+    #[prost(string, tag = "2")]
+    pub data: ::prost::alloc::string::String,
+}
+#[derive(serde::Serialize, serde::Deserialize)]
 #[serde(rename_all = "camelCase")]
 #[derive(Clone, PartialEq, ::prost::Message)]
 pub struct GenericTextMessage {
@@ -100,6 +112,7 @@ pub enum MessageType {
     Clipboard = 0,
     GenericText = 1,
     ConnectedDevices = 2,
+    ServerCommand = 3,
 }
 impl MessageType {
     /// String value of the enum field names used in the ProtoBuf definition.
@@ -111,6 +124,7 @@ impl MessageType {
             Self::Clipboard => "CLIPBOARD",
             Self::GenericText => "GENERIC_TEXT",
             Self::ConnectedDevices => "CONNECTED_DEVICES",
+            Self::ServerCommand => "SERVER_COMMAND",
         }
     }
     /// Creates an enum from field names used in the ProtoBuf definition.
@@ -119,6 +133,7 @@ impl MessageType {
             "CLIPBOARD" => Some(Self::Clipboard),
             "GENERIC_TEXT" => Some(Self::GenericText),
             "CONNECTED_DEVICES" => Some(Self::ConnectedDevices),
+            "SERVER_COMMAND" => Some(Self::ServerCommand),
             _ => None,
         }
     }
