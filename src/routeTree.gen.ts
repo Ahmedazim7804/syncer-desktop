@@ -11,6 +11,7 @@
 import { Route as rootRouteImport } from './routes/__root'
 import { Route as AboutRouteImport } from './routes/about'
 import { Route as IndexRouteImport } from './routes/index'
+import { Route as HomeDevicesRouteImport } from './routes/_home/devices'
 import { Route as HomeDashboardRouteImport } from './routes/_home/dashboard'
 import { Route as AuthAuthRouteImport } from './routes/_auth/_auth'
 import { Route as AuthAuthLoginRouteImport } from './routes/_auth/_auth.login'
@@ -23,6 +24,11 @@ const AboutRoute = AboutRouteImport.update({
 const IndexRoute = IndexRouteImport.update({
   id: '/',
   path: '/',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const HomeDevicesRoute = HomeDevicesRouteImport.update({
+  id: '/_home/devices',
+  path: '/devices',
   getParentRoute: () => rootRouteImport,
 } as any)
 const HomeDashboardRoute = HomeDashboardRouteImport.update({
@@ -44,12 +50,14 @@ export interface FileRoutesByFullPath {
   '/': typeof IndexRoute
   '/about': typeof AboutRoute
   '/dashboard': typeof HomeDashboardRoute
+  '/devices': typeof HomeDevicesRoute
   '/login': typeof AuthAuthLoginRoute
 }
 export interface FileRoutesByTo {
   '/': typeof IndexRoute
   '/about': typeof AboutRoute
   '/dashboard': typeof HomeDashboardRoute
+  '/devices': typeof HomeDevicesRoute
   '/login': typeof AuthAuthLoginRoute
 }
 export interface FileRoutesById {
@@ -58,19 +66,21 @@ export interface FileRoutesById {
   '/about': typeof AboutRoute
   '/_auth/_auth': typeof AuthAuthRouteWithChildren
   '/_home/dashboard': typeof HomeDashboardRoute
+  '/_home/devices': typeof HomeDevicesRoute
   '/_auth/_auth/login': typeof AuthAuthLoginRoute
 }
 export interface FileRouteTypes {
   fileRoutesByFullPath: FileRoutesByFullPath
-  fullPaths: '/' | '/about' | '/dashboard' | '/login'
+  fullPaths: '/' | '/about' | '/dashboard' | '/devices' | '/login'
   fileRoutesByTo: FileRoutesByTo
-  to: '/' | '/about' | '/dashboard' | '/login'
+  to: '/' | '/about' | '/dashboard' | '/devices' | '/login'
   id:
     | '__root__'
     | '/'
     | '/about'
     | '/_auth/_auth'
     | '/_home/dashboard'
+    | '/_home/devices'
     | '/_auth/_auth/login'
   fileRoutesById: FileRoutesById
 }
@@ -79,6 +89,7 @@ export interface RootRouteChildren {
   AboutRoute: typeof AboutRoute
   AuthAuthRoute: typeof AuthAuthRouteWithChildren
   HomeDashboardRoute: typeof HomeDashboardRoute
+  HomeDevicesRoute: typeof HomeDevicesRoute
 }
 
 declare module '@tanstack/react-router' {
@@ -95,6 +106,13 @@ declare module '@tanstack/react-router' {
       path: '/'
       fullPath: '/'
       preLoaderRoute: typeof IndexRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/_home/devices': {
+      id: '/_home/devices'
+      path: '/devices'
+      fullPath: '/devices'
+      preLoaderRoute: typeof HomeDevicesRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/_home/dashboard': {
@@ -138,6 +156,7 @@ const rootRouteChildren: RootRouteChildren = {
   AboutRoute: AboutRoute,
   AuthAuthRoute: AuthAuthRouteWithChildren,
   HomeDashboardRoute: HomeDashboardRoute,
+  HomeDevicesRoute: HomeDevicesRoute,
 }
 export const routeTree = rootRouteImport
   ._addFileChildren(rootRouteChildren)

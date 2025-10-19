@@ -23,6 +23,7 @@ pub fn run() -> Result<(), Box<dyn std::error::Error>> {
     tauri::Builder::default()
         .manage(Storage {
             client: Mutex::new(client),
+            streamThreadHandle: Mutex::new(None),
         })
         .plugin(tauri_plugin_store::Builder::new().build())
         .plugin(tauri_plugin_opener::init())
@@ -30,6 +31,7 @@ pub fn run() -> Result<(), Box<dyn std::error::Error>> {
         .invoke_handler(tauri::generate_handler![
             commands::syncer::is_reachable,
             commands::syncer::stream_messages,
+            commands::syncer::connect,
             greet
         ])
         .run(tauri::generate_context!())

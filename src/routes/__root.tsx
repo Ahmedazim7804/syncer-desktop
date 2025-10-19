@@ -1,58 +1,65 @@
-import * as React from 'react'
-import { Navigate, Outlet, createRootRoute, useRouter } from '@tanstack/react-router'
-import { TanStackRouterDevtools } from '@tanstack/react-router-devtools'
-import { AuthProvider, useAuth } from '@/lib/context/auth-context'
-import { PUBLIC_ROUTES } from '@/lib/public-routes'
-import { SidebarInset, SidebarProvider } from '@/components/ui/sidebar'
-import SidebarComponent from '@/components/custom/sidebar/sidebar'
-import Navbar from '@/components/custom/navbar'
-import { GrpcProvider } from '@/lib/context/grpc-context'
-import { Loader2, AlertCircle, RefreshCw, LogOut } from 'lucide-react'
-import { AuthErrors } from '@/lib/interfaces/errors'
-import { Button } from '@/components/ui/button'
+import * as React from "react";
+import {
+  Navigate,
+  Outlet,
+  createRootRoute,
+  useRouter,
+} from "@tanstack/react-router";
+import { TanStackRouterDevtools } from "@tanstack/react-router-devtools";
+import { AuthProvider, useAuth } from "@/lib/context/auth-context";
+import { PUBLIC_ROUTES, NEED_SIDEBAR } from "@/lib/public-routes";
+import { SidebarInset, SidebarProvider } from "@/components/ui/sidebar";
+import SidebarComponent from "@/components/custom/sidebar/sidebar";
+import Navbar from "@/components/custom/navbar";
+import { GrpcProvider } from "@/lib/context/grpc-context";
+import { Loader2, AlertCircle, RefreshCw, LogOut } from "lucide-react";
+import { AuthErrors } from "@/lib/interfaces/errors";
+import { Button } from "@/components/ui/button";
 
 export const Route = createRootRoute({
   component: RootComponent,
-})
+});
 
 function ErrorScreen({ error }: { error: AuthErrors }) {
-  const { logout, refetchUser } = useAuth()
-  const [isRetrying, setIsRetrying] = React.useState(false)
+  const { logout, refetchUser } = useAuth();
+  const [isRetrying, setIsRetrying] = React.useState(false);
 
   const handleRetry = async () => {
-    setIsRetrying(true)
+    setIsRetrying(true);
     try {
-      await refetchUser()
+      await refetchUser();
     } finally {
-      setIsRetrying(false)
+      setIsRetrying(false);
     }
-  }
+  };
 
   const handleLogout = async () => {
-    await logout()
-  }
+    await logout();
+  };
 
   const getErrorMessage = () => {
     switch (error) {
       case AuthErrors.CONNECTION_ERROR:
         return {
-          title: 'Connection Error',
-          description: 'Unable to connect to the server. Please check your internet connection and try again.'
-        }
+          title: "Connection Error",
+          description:
+            "Unable to connect to the server. Please check your internet connection and try again.",
+        };
       case AuthErrors.UNKNOWN_ERROR:
         return {
-          title: 'Something Went Wrong',
-          description: 'An unexpected error occurred. Please try again or contact support if the problem persists.'
-        }
+          title: "Something Went Wrong",
+          description:
+            "An unexpected error occurred. Please try again or contact support if the problem persists.",
+        };
       default:
         return {
-          title: 'Error',
-          description: 'An error occurred. Please try again.'
-        }
+          title: "Error",
+          description: "An error occurred. Please try again.",
+        };
     }
-  }
+  };
 
-  const { title, description } = getErrorMessage()
+  const { title, description } = getErrorMessage();
 
   return (
     <div className="h-screen w-screen flex items-center justify-center bg-background">
@@ -63,7 +70,7 @@ function ErrorScreen({ error }: { error: AuthErrors }) {
           </div>
           <div className="absolute inset-0 w-20 h-20 rounded-full bg-destructive/5 animate-pulse"></div>
         </div>
-        
+
         <div className="space-y-3 text-center">
           <h2 className="text-2xl font-semibold text-foreground">{title}</h2>
           <p className="text-muted-foreground leading-relaxed">{description}</p>
@@ -88,45 +95,43 @@ function ErrorScreen({ error }: { error: AuthErrors }) {
               </>
             )}
           </Button>
-          
-          <Button
-            onClick={handleLogout}
-            variant="outline"
-            className="flex-1"
-          >
+
+          <Button onClick={handleLogout} variant="outline" className="flex-1">
             <LogOut className="w-4 h-4 mr-2" />
             Logout
           </Button>
         </div>
       </div>
     </div>
-  )
+  );
 }
 
 function RootComponent() {
   return (
     <div className="h-[100vh] w-[100vw]">
       <AuthProvider>
-        <ProtectedRoute>
-          <Outlet />
-        </ProtectedRoute>
+        <GrpcProvider>
+          <ProtectedRoute>
+            <Outlet />
+          </ProtectedRoute>
+        </GrpcProvider>
       </AuthProvider>
       <TanStackRouterDevtools />
     </div>
-  )
+  );
 }
 
 function ProtectedRoute({ children }: { children: React.ReactNode }) {
-  const { isLoggedIn, loading, error} = useAuth()
-  const router = useRouter()
-  const isPublicRoute = PUBLIC_ROUTES.includes(router.state.location.pathname)
+  const { isLoggedIn, loading, error } = useAuth();
+  const router = useRouter();
+  const isPublicRoute = PUBLIC_ROUTES.includes(router.state.location.pathname);
 
-  console.log(`isLoggedIn: ${isLoggedIn}, loading: ${loading}`)
-  
+  console.log(`isLoggedIn: ${isLoggedIn}, loading: ${loading}`);
+
   if (isPublicRoute) {
-    return children
+    return children;
   }
-  
+
   if (loading) {
     return (
       <div className="h-screen w-screen flex items-center justify-center bg-background">
@@ -138,38 +143,40 @@ function ProtectedRoute({ children }: { children: React.ReactNode }) {
             <div className="absolute inset-0 w-16 h-16 rounded-full bg-primary opacity-20 animate-ping"></div>
           </div>
           <div className="space-y-2 text-center">
-            <h3 className="text-lg font-semibold text-foreground">Loading...</h3>
-            <p className="text-sm text-muted-foreground">Please wait while we set things up</p>
+            <h3 className="text-lg font-semibold text-foreground">
+              Loading...
+            </h3>
+            <p className="text-sm text-muted-foreground">
+              Please wait while we set things up
+            </p>
           </div>
         </div>
       </div>
-    )
+    );
   }
 
-  if (error === AuthErrors.CONNECTION_ERROR || error === AuthErrors.UNKNOWN_ERROR) {
-    return <ErrorScreen error={error} />
+  if (
+    error === AuthErrors.CONNECTION_ERROR ||
+    error === AuthErrors.UNKNOWN_ERROR
+  ) {
+    return <ErrorScreen error={error} />;
   }
-  
+
   if (!isLoggedIn) {
-    return <Navigate to="/login" />
+    return <Navigate to="/login" />;
   }
-  
-  return (
+
+  return !NEED_SIDEBAR.includes(router.state.location.pathname) ? (
+    children
+  ) : (
     <SidebarProvider>
-      <SidebarComponent className='w-sm relative shadow-none'/>
-      <SidebarInset className='overflow-hidden max-w-full'>
-      <div className='flex flex-col flex-1 border-0'>
-        <Navbar/>
-        <div className='flex flex-col flex-1 p-4'>
-          <GrpcProvider> 
-            {children}
-          </GrpcProvider>
+      <SidebarComponent className="w-sm relative shadow-none" />
+      <SidebarInset className="overflow-hidden max-w-full">
+        <div className="flex flex-col flex-1 border-0">
+          <Navbar />
+          <div className="flex flex-col flex-1 p-4">{children}</div>
         </div>
-      </div>
       </SidebarInset>
     </SidebarProvider>
-  )
+  );
 }
-
-
-    

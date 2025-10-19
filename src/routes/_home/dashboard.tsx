@@ -2,7 +2,7 @@ import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
 import { useGrpcContext } from '@/lib/context/grpc-context'
 import { ClipboardMessage, ConnectedDevices, GenericTextMessage, MessageType, ServerMessage } from '@/lib/interfaces/syncer'
-import { createFileRoute } from '@tanstack/react-router'
+import { createFileRoute, useRouter } from '@tanstack/react-router'
 import { useEffect, useState } from 'react'
 
 export const Route = createFileRoute('/_home/dashboard')({
@@ -14,8 +14,10 @@ function RouteComponent() {
   const [reachable, setReachable] = useState(false)
   
   const { startStream, getIsReachable } = useGrpcContext()
+  const router = useRouter();
 
   useEffect(() => {
+    router.navigate({ to: "/devices" });
     const fetchReachable = async () => {
       const isReachable = await getIsReachable()
       setReachable(isReachable)
