@@ -8,22 +8,22 @@ import {
   MessageType,
   ServerMessage,
 } from "@/lib/interfaces/syncer";
-import { createFileRoute, useRouter } from "@tanstack/react-router";
+import { createFileRoute, useParams, useRouter } from "@tanstack/react-router";
 import { useEffect, useState } from "react";
 
-export const Route = createFileRoute("/_home/dashboard")({
+export const Route = createFileRoute("/devices/$deviceId")({
   component: RouteComponent,
 });
 
 function RouteComponent() {
   const [message, setMessage] = useState("");
   const [reachable, setReachable] = useState(false);
+  const { deviceId } = useParams({ from: "/devices/$deviceId" });
 
   const { getIsReachable } = useGrpcContext();
   const router = useRouter();
 
   useEffect(() => {
-    router.navigate({ to: "/devices" });
     const fetchReachable = async () => {
       const isReachable = await getIsReachable();
       setReachable(isReachable);

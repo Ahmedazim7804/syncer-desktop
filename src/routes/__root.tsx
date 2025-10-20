@@ -7,7 +7,7 @@ import {
 } from "@tanstack/react-router";
 import { TanStackRouterDevtools } from "@tanstack/react-router-devtools";
 import { AuthProvider, useAuth } from "@/lib/context/auth-context";
-import { PUBLIC_ROUTES, NEED_SIDEBAR } from "@/lib/public-routes";
+import { useRouteInfo } from "@/lib/hooks/useRouteInfo";
 import { SidebarInset, SidebarProvider } from "@/components/ui/sidebar";
 import SidebarComponent from "@/components/custom/sidebar/sidebar";
 import Navbar from "@/components/custom/navbar";
@@ -23,6 +23,7 @@ export const Route = createRootRoute({
 function ErrorScreen({ error }: { error: AuthErrors }) {
   const { logout, refetchUser } = useAuth();
   const [isRetrying, setIsRetrying] = React.useState(false);
+  const router = useRouter();
 
   const handleRetry = async () => {
     setIsRetrying(true);
@@ -35,6 +36,7 @@ function ErrorScreen({ error }: { error: AuthErrors }) {
 
   const handleLogout = async () => {
     await logout();
+    router.navigate({ to: "/login" });
   };
 
   const getErrorMessage = () => {
@@ -123,12 +125,13 @@ function RootComponent() {
 
 function ProtectedRoute({ children }: { children: React.ReactNode }) {
   const { isLoggedIn, loading, error } = useAuth();
-  const router = useRouter();
-  const isPublicRoute = PUBLIC_ROUTES.includes(router.state.location.pathname);
+  const { isPublic, needSidebar } = useRouteInfo();
 
-  console.log(`isLoggedIn: ${isLoggedIn}, loading: ${loading}`);
+  console.log(
+    `isLoggedIn: ${isLoggedIn}, loading: ${loading}, needSidebar: ${needSidebar}`
+  );
 
-  if (isPublicRoute) {
+  if (isPublic) {
     return children;
   }
 
@@ -166,7 +169,7 @@ function ProtectedRoute({ children }: { children: React.ReactNode }) {
     return <Navigate to="/login" />;
   }
 
-  return !NEED_SIDEBAR.includes(router.state.location.pathname) ? (
+  return !needSidebar ? (
     children
   ) : (
     <SidebarProvider>

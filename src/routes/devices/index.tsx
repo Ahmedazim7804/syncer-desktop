@@ -4,8 +4,8 @@ import { Input } from "@/components/ui/input";
 import { Separator } from "@/components/ui/separator";
 import { Skeleton } from "@/components/ui/skeleton";
 import { useGrpcContext } from "@/lib/context/grpc-context";
-import { DeviceInfo, MessageType } from "@/lib/interfaces/syncer";
-import { createFileRoute } from "@tanstack/react-router";
+import { Command, DeviceInfo, MessageType } from "@/lib/interfaces/syncer";
+import { createFileRoute, useRouter } from "@tanstack/react-router";
 import { useEffect, useMemo, useState } from "react";
 import {
   FaLinux,
@@ -17,7 +17,7 @@ import {
 } from "react-icons/fa";
 import { MdPhoneAndroid, MdComputer } from "react-icons/md";
 
-export const Route = createFileRoute("/_home/devices")({
+export const Route = createFileRoute("/devices/")({
   component: RouteComponent,
 });
 
@@ -32,9 +32,10 @@ function RouteComponent() {
       createdAt: Math.floor(Date.now() / 1000),
       type: MessageType.SERVER_COMMAND,
       ServerCommand: {
-        command: "refresh",
+        command: Command.REFRESH_DEVICES,
         data: JSON.stringify({}),
       },
+      for: "0",
     });
   };
 
@@ -144,6 +145,7 @@ function DeviceList({
 }
 
 function DeviceItem({ device }: { device: DeviceInfo }) {
+  const router = useRouter();
   const getPlatformIcon = () => {
     switch (device.platform.toLowerCase()) {
       case "android":
@@ -173,8 +175,7 @@ function DeviceItem({ device }: { device: DeviceInfo }) {
 
   const handleDeviceClick = () => {
     if (device.connected) {
-      // TODO: Implement device selection/connection flow
-      console.log("Selected device:", device.id);
+      router.navigate({ to: `/devices/${device.id}` });
     }
   };
 

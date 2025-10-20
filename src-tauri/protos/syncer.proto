@@ -28,6 +28,8 @@ message ClientMessage {
   string id = 1;
   int64 createdAt = 2;
   MessageType type = 3;
+  // for = "0" -> broadcast, for = "1" -> server command
+  string for = 8;
 
   oneof payload {
     ClipboardMessage Clipboard = 4;
@@ -52,9 +54,14 @@ message ServerMessage {
 
 message ServerCommand {
   // command name
-  string command = 1;
+  Command command = 1;
   // json encoded data
   string data = 2;
+}
+
+enum Command {
+  REFRESH_DEVICES = 0;
+  DISCONNECT = 1;
 }
 
 message GenericTextMessage { string text = 1; }

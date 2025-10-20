@@ -11,8 +11,8 @@
 import { Route as rootRouteImport } from './routes/__root'
 import { Route as AboutRouteImport } from './routes/about'
 import { Route as IndexRouteImport } from './routes/index'
-import { Route as HomeDevicesRouteImport } from './routes/_home/devices'
-import { Route as HomeDashboardRouteImport } from './routes/_home/dashboard'
+import { Route as DevicesIndexRouteImport } from './routes/devices/index'
+import { Route as DevicesDeviceIdRouteImport } from './routes/devices/$deviceId'
 import { Route as AuthAuthRouteImport } from './routes/_auth/_auth'
 import { Route as AuthAuthLoginRouteImport } from './routes/_auth/_auth.login'
 
@@ -26,14 +26,14 @@ const IndexRoute = IndexRouteImport.update({
   path: '/',
   getParentRoute: () => rootRouteImport,
 } as any)
-const HomeDevicesRoute = HomeDevicesRouteImport.update({
-  id: '/_home/devices',
-  path: '/devices',
+const DevicesIndexRoute = DevicesIndexRouteImport.update({
+  id: '/devices/',
+  path: '/devices/',
   getParentRoute: () => rootRouteImport,
 } as any)
-const HomeDashboardRoute = HomeDashboardRouteImport.update({
-  id: '/_home/dashboard',
-  path: '/dashboard',
+const DevicesDeviceIdRoute = DevicesDeviceIdRouteImport.update({
+  id: '/devices/$deviceId',
+  path: '/devices/$deviceId',
   getParentRoute: () => rootRouteImport,
 } as any)
 const AuthAuthRoute = AuthAuthRouteImport.update({
@@ -49,15 +49,15 @@ const AuthAuthLoginRoute = AuthAuthLoginRouteImport.update({
 export interface FileRoutesByFullPath {
   '/': typeof IndexRoute
   '/about': typeof AboutRoute
-  '/dashboard': typeof HomeDashboardRoute
-  '/devices': typeof HomeDevicesRoute
+  '/devices/$deviceId': typeof DevicesDeviceIdRoute
+  '/devices': typeof DevicesIndexRoute
   '/login': typeof AuthAuthLoginRoute
 }
 export interface FileRoutesByTo {
   '/': typeof IndexRoute
   '/about': typeof AboutRoute
-  '/dashboard': typeof HomeDashboardRoute
-  '/devices': typeof HomeDevicesRoute
+  '/devices/$deviceId': typeof DevicesDeviceIdRoute
+  '/devices': typeof DevicesIndexRoute
   '/login': typeof AuthAuthLoginRoute
 }
 export interface FileRoutesById {
@@ -65,22 +65,22 @@ export interface FileRoutesById {
   '/': typeof IndexRoute
   '/about': typeof AboutRoute
   '/_auth/_auth': typeof AuthAuthRouteWithChildren
-  '/_home/dashboard': typeof HomeDashboardRoute
-  '/_home/devices': typeof HomeDevicesRoute
+  '/devices/$deviceId': typeof DevicesDeviceIdRoute
+  '/devices/': typeof DevicesIndexRoute
   '/_auth/_auth/login': typeof AuthAuthLoginRoute
 }
 export interface FileRouteTypes {
   fileRoutesByFullPath: FileRoutesByFullPath
-  fullPaths: '/' | '/about' | '/dashboard' | '/devices' | '/login'
+  fullPaths: '/' | '/about' | '/devices/$deviceId' | '/devices' | '/login'
   fileRoutesByTo: FileRoutesByTo
-  to: '/' | '/about' | '/dashboard' | '/devices' | '/login'
+  to: '/' | '/about' | '/devices/$deviceId' | '/devices' | '/login'
   id:
     | '__root__'
     | '/'
     | '/about'
     | '/_auth/_auth'
-    | '/_home/dashboard'
-    | '/_home/devices'
+    | '/devices/$deviceId'
+    | '/devices/'
     | '/_auth/_auth/login'
   fileRoutesById: FileRoutesById
 }
@@ -88,8 +88,8 @@ export interface RootRouteChildren {
   IndexRoute: typeof IndexRoute
   AboutRoute: typeof AboutRoute
   AuthAuthRoute: typeof AuthAuthRouteWithChildren
-  HomeDashboardRoute: typeof HomeDashboardRoute
-  HomeDevicesRoute: typeof HomeDevicesRoute
+  DevicesDeviceIdRoute: typeof DevicesDeviceIdRoute
+  DevicesIndexRoute: typeof DevicesIndexRoute
 }
 
 declare module '@tanstack/react-router' {
@@ -108,18 +108,18 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof IndexRouteImport
       parentRoute: typeof rootRouteImport
     }
-    '/_home/devices': {
-      id: '/_home/devices'
+    '/devices/': {
+      id: '/devices/'
       path: '/devices'
       fullPath: '/devices'
-      preLoaderRoute: typeof HomeDevicesRouteImport
+      preLoaderRoute: typeof DevicesIndexRouteImport
       parentRoute: typeof rootRouteImport
     }
-    '/_home/dashboard': {
-      id: '/_home/dashboard'
-      path: '/dashboard'
-      fullPath: '/dashboard'
-      preLoaderRoute: typeof HomeDashboardRouteImport
+    '/devices/$deviceId': {
+      id: '/devices/$deviceId'
+      path: '/devices/$deviceId'
+      fullPath: '/devices/$deviceId'
+      preLoaderRoute: typeof DevicesDeviceIdRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/_auth/_auth': {
@@ -155,8 +155,8 @@ const rootRouteChildren: RootRouteChildren = {
   IndexRoute: IndexRoute,
   AboutRoute: AboutRoute,
   AuthAuthRoute: AuthAuthRouteWithChildren,
-  HomeDashboardRoute: HomeDashboardRoute,
-  HomeDevicesRoute: HomeDevicesRoute,
+  DevicesDeviceIdRoute: DevicesDeviceIdRoute,
+  DevicesIndexRoute: DevicesIndexRoute,
 }
 export const routeTree = rootRouteImport
   ._addFileChildren(rootRouteChildren)

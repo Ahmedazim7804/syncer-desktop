@@ -58,6 +58,39 @@ export function messageTypeToJSON(object: MessageType): string {
   }
 }
 
+export enum Command {
+  REFRESH_DEVICES = 0,
+  DISCONNECT = 1,
+  UNRECOGNIZED = -1,
+}
+
+export function commandFromJSON(object: any): Command {
+  switch (object) {
+    case 0:
+    case "REFRESH_DEVICES":
+      return Command.REFRESH_DEVICES;
+    case 1:
+    case "DISCONNECT":
+      return Command.DISCONNECT;
+    case -1:
+    case "UNRECOGNIZED":
+    default:
+      return Command.UNRECOGNIZED;
+  }
+}
+
+export function commandToJSON(object: Command): string {
+  switch (object) {
+    case Command.REFRESH_DEVICES:
+      return "REFRESH_DEVICES";
+    case Command.DISCONNECT:
+      return "DISCONNECT";
+    case Command.UNRECOGNIZED:
+    default:
+      return "UNRECOGNIZED";
+  }
+}
+
 export interface ClipboardMessage {
   content: string;
 }
@@ -79,6 +112,8 @@ export interface ClientMessage {
   id: string;
   createdAt: number;
   type: MessageType;
+  /** for = "0" -> broadcast, for = "1" -> server command */
+  for: string;
   Clipboard?: ClipboardMessage | undefined;
   GenericText?: GenericTextMessage | undefined;
   empty?: Empty | undefined;
@@ -97,7 +132,7 @@ export interface ServerMessage {
 
 export interface ServerCommand {
   /** command name */
-  command: string;
+  command: Command;
   /** json encoded data */
   data: string;
 }
@@ -369,6 +404,7 @@ function createBaseClientMessage(): ClientMessage {
     id: "",
     createdAt: 0,
     type: 0,
+    for: "",
     Clipboard: undefined,
     GenericText: undefined,
     empty: undefined,
@@ -386,6 +422,9 @@ export const ClientMessage: MessageFns<ClientMessage> = {
     }
     if (message.type !== 0) {
       writer.uint32(24).int32(message.type);
+    }
+    if (message.for !== "") {
+      writer.uint32(66).string(message.for);
     }
     if (message.Clipboard !== undefined) {
       ClipboardMessage.encode(message.Clipboard, writer.uint32(34).fork()).join();
@@ -431,6 +470,14 @@ export const ClientMessage: MessageFns<ClientMessage> = {
           }
 
           message.type = reader.int32() as any;
+          continue;
+        }
+        case 8: {
+          if (tag !== 66) {
+            break;
+          }
+
+          message.for = reader.string();
           continue;
         }
         case 4: {
@@ -479,6 +526,7 @@ export const ClientMessage: MessageFns<ClientMessage> = {
       id: isSet(object.id) ? globalThis.String(object.id) : "",
       createdAt: isSet(object.createdAt) ? globalThis.Number(object.createdAt) : 0,
       type: isSet(object.type) ? messageTypeFromJSON(object.type) : 0,
+      for: isSet(object.for) ? globalThis.String(object.for) : "",
       Clipboard: isSet(object.Clipboard) ? ClipboardMessage.fromJSON(object.Clipboard) : undefined,
       GenericText: isSet(object.GenericText) ? GenericTextMessage.fromJSON(object.GenericText) : undefined,
       empty: isSet(object.empty) ? Empty.fromJSON(object.empty) : undefined,
@@ -496,6 +544,9 @@ export const ClientMessage: MessageFns<ClientMessage> = {
     }
     if (message.type !== 0) {
       obj.type = messageTypeToJSON(message.type);
+    }
+    if (message.for !== "") {
+      obj.for = message.for;
     }
     if (message.Clipboard !== undefined) {
       obj.Clipboard = ClipboardMessage.toJSON(message.Clipboard);
@@ -520,6 +571,7 @@ export const ClientMessage: MessageFns<ClientMessage> = {
     message.id = object.id ?? "";
     message.createdAt = object.createdAt ?? 0;
     message.type = object.type ?? 0;
+    message.for = object.for ?? "";
     message.Clipboard = (object.Clipboard !== undefined && object.Clipboard !== null)
       ? ClipboardMessage.fromPartial(object.Clipboard)
       : undefined;
@@ -705,13 +757,13 @@ export const ServerMessage: MessageFns<ServerMessage> = {
 };
 
 function createBaseServerCommand(): ServerCommand {
-  return { command: "", data: "" };
+  return { command: 0, data: "" };
 }
 
 export const ServerCommand: MessageFns<ServerCommand> = {
   encode(message: ServerCommand, writer: BinaryWriter = new BinaryWriter()): BinaryWriter {
-    if (message.command !== "") {
-      writer.uint32(10).string(message.command);
+    if (message.command !== 0) {
+      writer.uint32(8).int32(message.command);
     }
     if (message.data !== "") {
       writer.uint32(18).string(message.data);
@@ -727,11 +779,11 @@ export const ServerCommand: MessageFns<ServerCommand> = {
       const tag = reader.uint32();
       switch (tag >>> 3) {
         case 1: {
-          if (tag !== 10) {
+          if (tag !== 8) {
             break;
           }
 
-          message.command = reader.string();
+          message.command = reader.int32() as any;
           continue;
         }
         case 2: {
@@ -753,15 +805,15 @@ export const ServerCommand: MessageFns<ServerCommand> = {
 
   fromJSON(object: any): ServerCommand {
     return {
-      command: isSet(object.command) ? globalThis.String(object.command) : "",
+      command: isSet(object.command) ? commandFromJSON(object.command) : 0,
       data: isSet(object.data) ? globalThis.String(object.data) : "",
     };
   },
 
   toJSON(message: ServerCommand): unknown {
     const obj: any = {};
-    if (message.command !== "") {
-      obj.command = message.command;
+    if (message.command !== 0) {
+      obj.command = commandToJSON(message.command);
     }
     if (message.data !== "") {
       obj.data = message.data;
@@ -774,7 +826,7 @@ export const ServerCommand: MessageFns<ServerCommand> = {
   },
   fromPartial<I extends Exact<DeepPartial<ServerCommand>, I>>(object: I): ServerCommand {
     const message = createBaseServerCommand();
-    message.command = object.command ?? "";
+    message.command = object.command ?? 0;
     message.data = object.data ?? "";
     return message;
   },

@@ -40,6 +40,9 @@ pub struct ClientMessage {
     pub created_at: i64,
     #[prost(enumeration = "MessageType", tag = "3")]
     pub r#type: i32,
+    /// for = "0" -> broadcast, for = "1" -> server command
+    #[prost(string, tag = "8")]
+    pub r#for: ::prost::alloc::string::String,
     #[prost(oneof = "client_message::Payload", tags = "4, 5, 6, 7")]
     #[serde(flatten)]
     pub payload: ::core::option::Option<client_message::Payload>,
@@ -92,8 +95,8 @@ pub mod server_message {
 #[derive(Clone, PartialEq, ::prost::Message)]
 pub struct ServerCommand {
     /// command name
-    #[prost(string, tag = "1")]
-    pub command: ::prost::alloc::string::String,
+    #[prost(enumeration = "Command", tag = "1")]
+    pub command: i32,
     /// json encoded data
     #[prost(string, tag = "2")]
     pub data: ::prost::alloc::string::String,
@@ -134,6 +137,33 @@ impl MessageType {
             "GENERIC_TEXT" => Some(Self::GenericText),
             "CONNECTED_DEVICES" => Some(Self::ConnectedDevices),
             "SERVER_COMMAND" => Some(Self::ServerCommand),
+            _ => None,
+        }
+    }
+}
+#[derive(serde::Serialize, serde::Deserialize)]
+#[derive(Clone, Copy, Debug, PartialEq, Eq, Hash, PartialOrd, Ord, ::prost::Enumeration)]
+#[repr(i32)]
+pub enum Command {
+    RefreshDevices = 0,
+    Disconnect = 1,
+}
+impl Command {
+    /// String value of the enum field names used in the ProtoBuf definition.
+    ///
+    /// The values are not transformed in any way and thus are considered stable
+    /// (if the ProtoBuf definition does not change) and safe for programmatic use.
+    pub fn as_str_name(&self) -> &'static str {
+        match self {
+            Self::RefreshDevices => "REFRESH_DEVICES",
+            Self::Disconnect => "DISCONNECT",
+        }
+    }
+    /// Creates an enum from field names used in the ProtoBuf definition.
+    pub fn from_str_name(value: &str) -> ::core::option::Option<Self> {
+        match value {
+            "REFRESH_DEVICES" => Some(Self::RefreshDevices),
+            "DISCONNECT" => Some(Self::Disconnect),
             _ => None,
         }
     }
